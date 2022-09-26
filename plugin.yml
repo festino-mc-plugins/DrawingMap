@@ -1,0 +1,13 @@
+name: DrawingMap
+version: 1.0.0
+authors: [FEST_Channel]
+
+description: New map scales, and new render mode.
+website: https://github.com/festino-mc-plugins/DrawingMap
+
+main: com.festp.Main
+
+commands:
+         drawingmap:
+           description: Allows to reload config, get plugin info.
+api-version: 1.14
