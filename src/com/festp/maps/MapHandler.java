@@ -1,7 +1,6 @@
 package com.festp.maps;
 
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -15,12 +14,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.server.MapInitializeEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.map.MapView.Scale;
 
-import com.festp.nms.NBTUtils;
 import com.festp.utils.Utils;
 
 public class MapHandler implements Listener {
@@ -77,16 +74,11 @@ public class MapHandler implements Listener {
 		Player player = event.getPlayer();
 		if (item.getType() == Material.MAP) {
 			ItemStack mapItem;
-			if (NBTUtils.hasDataField(item, MapUtils.SCALE_FIELD)) {
-				int scale = NBTUtils.getInt(item, MapUtils.SCALE_FIELD);
+			if (SmallMapUtils.isSmallMapByNbt(item)) {
+				int scale = SmallMapUtils.getScale(item);
 				SmallMap map = SmallMapUtils.genSmallMap(player.getLocation(), scale);
 				mapItem = MapUtils.getMap(map.getId());
-			} else if (NBTUtils.hasDataField(item, MapUtils.IS_DRAWING_FIELD)) {
-				Boolean isDrawing = NBTUtils.getBoolean(item, MapUtils.IS_DRAWING_FIELD);
-				if (isDrawing == null || !isDrawing) {
-					event.setCancelled(true);
-					return;
-				}
+			} else if (DrawingMapUtils.isDrawingMapByNbt(item)) {
 				MapView view = Bukkit.createMap(event.getPlayer().getWorld());
 				view.setScale(Scale.FARTHEST);
 				DrawingMap newMap = new DrawingMap(view.getId(), DrawingInfo.buildFrom(player.getLocation()));

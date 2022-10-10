@@ -9,6 +9,7 @@ import com.festp.commands.CommandWorker;
 import com.festp.maps.MapCraftHandler;
 import com.festp.maps.MapHandler;
 import com.festp.maps.ScanManager;
+import com.festp.utils.NBTUtils;
 
 public class Main extends JavaPlugin implements Listener
 {
@@ -25,6 +26,7 @@ public class Main extends JavaPlugin implements Listener
 	long t1;
 	public void onEnable() {
 		Logger.setLogger(getLogger());
+		NBTUtils.setPlugin(this);
 		pluginname = getName();
 		PATH = "plugins" + System.getProperty("file.separator") + pluginname + System.getProperty("file.separator");
     	PluginManager pm = getServer().getPluginManager();

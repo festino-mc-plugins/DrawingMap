@@ -10,14 +10,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 
-import com.festp.nms.NBTUtils;
+import com.festp.utils.NBTUtils;
 import com.google.common.collect.Lists;
 
 public class MapUtils {
-	
-	public static final String SCALE_FIELD = "map_scale";
-	public static final String IS_DRAWING_FIELD = "is_drawing";
-	public static final boolean USE_SCALE_NAMES = false; // bad for frames, good for understanding
 	
 	public static int getEmptySlot(PlayerInventory inv)
 	{
@@ -86,28 +82,28 @@ public class MapUtils {
 	
 	/* uses USE_SCALE_NAMES as second argument */
 	public static ItemStack getMap(int id) {
-		return getMap(id, USE_SCALE_NAMES);
+		return getMap(id, SmallMapUtils.USE_SCALE_NAMES);
 	}
 	
-	public static ItemStack getMap(int id, boolean scale_name)
+	public static ItemStack getMap(int id, boolean scaleName)
 	{
 		ItemStack item = new ItemStack(Material.FILLED_MAP, 1);
-		item = NBTUtils.setData(item, "map", id);
-		if (SmallMapUtils.isSmallMap(item)) {
+		if (SmallMapUtils.isSmallMap(id)) {
 			ItemMeta meta = item.getItemMeta();
 			
-			SmallMap map = (SmallMap) MapFileManager.load(getMapId(item));
+			SmallMap map = (SmallMap) MapFileManager.load(id);
 			String[] lore = new String[] { "Scaling at " + map.getScale() + ":1" };
 			meta.setLore(Lists.asList("", lore));
-			if (scale_name)
+			if (scaleName)
 				meta.setDisplayName("Map (" + map.getScale() + ":1)");
 			
 			item.setItemMeta(meta);
-		} else if (DrawingMapUtils.isDrawingMap(item)) {
+		} else if (DrawingMapUtils.isDrawingMap(id)) {
 			ItemMeta meta = item.getItemMeta();
 			meta.setLore(Arrays.asList(new String[] { "Drawing" }));
 			item.setItemMeta(meta);
 		}
+		item = NBTUtils.setMapId(item, id); // must be at the end!
 		return item;
 	}
 	
@@ -115,6 +111,6 @@ public class MapUtils {
 	{
 		if (item == null || item.getType() != Material.FILLED_MAP)
 			return null;
-		return NBTUtils.getInt(item, "map");
+		return NBTUtils.getMapId(item);
 	}
 }

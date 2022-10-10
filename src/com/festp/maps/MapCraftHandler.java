@@ -26,8 +26,8 @@ import com.festp.CraftManager;
 import com.festp.DelayedTask;
 import com.festp.Main;
 import com.festp.TaskList;
-import com.festp.nms.NBTUtils;
-import com.festp.nms.NmsHelper;
+import com.festp.utils.NBTUtils;
+import com.festp.utils.NmsHelper;
 import com.festp.utils.Utils;
 import com.google.common.collect.Lists;
 
@@ -51,9 +51,9 @@ public class MapCraftHandler implements Listener {
 					if (item.getType() == Material.PAPER) {
 						info.paperCount++;
 					} else if (item.getType() == Material.MAP) {
-						if (NBTUtils.hasDataField(item, MapUtils.SCALE_FIELD)) {
+						if (SmallMapUtils.isSmallMapByNbt(item)) {
 							info.emptySmallCount++;
-						} else if (NBTUtils.hasDataField(item, MapUtils.IS_DRAWING_FIELD)) {
+						} else if (DrawingMapUtils.isDrawingMapByNbt(item)) {
 							info.emptyDrawingCount++;
 						}
 					} else if (SmallMapUtils.isSmallMap(item)) {
@@ -314,17 +314,17 @@ public class MapCraftHandler implements Listener {
 		ItemMeta meta = result.getItemMeta();
 		meta.setDisplayName("Map (" + scale + ":1)");
 		result.setItemMeta(meta);
-		result = NBTUtils.setData(result, MapUtils.SCALE_FIELD, scale);
+		result = NBTUtils.setInt(result, SmallMapUtils.SCALE_FIELD, scale);
 		return result;
 	}
 
 	public static ItemStack getDrawingMap()
 	{
 		ItemStack result = new ItemStack(Material.MAP, 1);
-		result = NBTUtils.setData(result, MapUtils.IS_DRAWING_FIELD, 8);
 		ItemMeta meta = result.getItemMeta();
 		meta.setLore(Arrays.asList(new String[] { "Drawing" }));
 		result.setItemMeta(meta);
+		result = NBTUtils.setBoolean(result, DrawingMapUtils.IS_DRAWING_FIELD, true);
 		return result;
 	}
 	

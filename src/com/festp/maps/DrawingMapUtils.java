@@ -2,7 +2,11 @@ package com.festp.maps;
 
 import org.bukkit.inventory.ItemStack;
 
+import com.festp.utils.NBTUtils;
+
 public class DrawingMapUtils {
+	
+	public static final String IS_DRAWING_FIELD = "is_drawing";
 	
 	public static boolean isDrawingMap(int id)
 	{
@@ -15,5 +19,9 @@ public class DrawingMapUtils {
 		if (id == null)
 			return false;
 		return isDrawingMap(id);
+	}
+	public static boolean isDrawingMapByNbt(ItemStack stack)
+	{
+		return NBTUtils.getBoolean(stack, IS_DRAWING_FIELD);
 	}
 }

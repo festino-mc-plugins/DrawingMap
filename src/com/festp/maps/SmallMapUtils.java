@@ -7,9 +7,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.map.MapView.Scale;
 
+import com.festp.utils.NBTUtils;
 import com.google.common.collect.Lists;
 
 public class SmallMapUtils {
+	
+	public static final String SCALE_FIELD = "map_scale";
+	public static final boolean USE_SCALE_NAMES = false; // bad for frames, good for understanding
 	/** New scales (8:1, 4:1, 2:1)
 	 *  	craft: item tag
 	 *  MapInitializeEvent: cancel, create and store ID+data(scale, rot)
@@ -72,11 +76,23 @@ public class SmallMapUtils {
 		IMap map = MapFileManager.load(id);
 		return map != null && map instanceof SmallMap;
 	}
-	public static boolean isSmallMap(ItemStack item)
+	public static boolean isSmallMap(ItemStack stack)
 	{
-		Integer id = MapUtils.getMapId(item);
+		Integer id = MapUtils.getMapId(stack);
 		if (id == null)
 			return false;
 		return isSmallMap(id);
+	}
+	public static boolean isSmallMapByNbt(ItemStack stack)
+	{
+		return getScale(stack) >= 1;
+	}
+	/** @return -1 if no scale or scale is not valid */
+	public static int getScale(ItemStack stack)
+	{
+		int scale = NBTUtils.getInt(stack, SCALE_FIELD);
+		if (1 <= scale && scale <= 128)
+			return scale;
+		return -1;
 	}
 }
