@@ -5,6 +5,8 @@ import java.awt.image.BufferedImage;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -93,6 +95,7 @@ public class MapHandler implements Listener {
 				return;
 			}
 
+			player.getWorld().playSound(player, Sound.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, SoundCategory.PLAYERS, 1, 1);
 			event.setCancelled(true);
 			event.setUseInteractedBlock(Result.DENY);
 			
