@@ -59,25 +59,28 @@ public class NmsHelper {
 			Class<?> classCraftMapCanvas = getCraftbukkitClass("map.CraftMapCanvas");
 			Field fieldBuffer = classCraftMapCanvas.getDeclaredField("buffer");
 			fieldBuffer.setAccessible(true);
-			byte[] colors = new byte[128 * 128];
+			byte[] pixels = null;
 			//Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>> canvases = (Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>>) preCanvases;
 			//for (Map<CraftPlayer, CraftMapCanvas> pair : canvases.values())
 			Map<MapRenderer, Map<Object, Object>> canvases = (Map<MapRenderer, Map<Object, Object>>) preCanvases;
-			for (Map<Object, Object> pair : canvases.values())
+			for (Map<Object, Object> pair : canvases.values()) {
 				//for (CraftMapCanvas canvas : pair.values())
 				for (Object canvas : pair.values())
 				{
 					Object buffer = fieldBuffer.get(canvas);
-					byte[] pixels = (byte[])buffer;
-					for (int i = 0; i < colors.length; i++)
-						colors[i] = pixels[i];
+					pixels = (byte[])buffer;
 					break;
 				}
+			}
+			byte[] colors = new byte[128 * 128];
+			for (int i = 0; i < colors.length; i++) {
+				colors[i] = pixels[i];
+			}
 
 			Field fieldImage = viewTo.getClass().getDeclaredField("worldMap");
 			fieldImage.setAccessible(true);
-			Class<?> classWorldMap = getNmsClass_WorldMap();
 			Object worldMap = fieldImage.get(viewTo);
+			Class<?> classWorldMap = getNmsClass_WorldMap();
 			Field fieldColors = classWorldMap.getDeclaredField("g"); // "g" = "colors"
 			fieldColors.setAccessible(true);
 			fieldColors.set(worldMap, colors);
