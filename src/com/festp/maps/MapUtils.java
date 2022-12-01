@@ -11,6 +11,7 @@ import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 
 import com.festp.utils.NBTUtils;
+import com.festp.utils.UtilsVersion;
 import com.google.common.collect.Lists;
 
 public class MapUtils {
@@ -66,8 +67,18 @@ public class MapUtils {
 	 * @return <b>-1</b> if no maps */
 	public static int getMaxId()
 	{
-		int min = -1;
-		int max = Short.MAX_VALUE;
+		if (UtilsVersion.SUPPORTS_INTEGER_MAP_ID) {
+			// don't care about the implementation of negative ids
+			if (isExists(-1) || isExists(Integer.MIN_VALUE))
+				return getMaxId(Integer.MIN_VALUE, -1);
+			else
+				return getMaxId(-1, Integer.MAX_VALUE);
+		} else {
+			return getMaxId(-1, Short.MAX_VALUE);
+		}
+	}
+	private static int getMaxId(int min, int max)
+	{
 		while (min < max)
 		{
 			int mid = (min + 1 + max) / 2;
