@@ -1,11 +1,17 @@
 package com.festp.maps;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
+import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapView;
+import org.bukkit.util.Vector;
+
+import com.festp.utils.Vector3i;
 
 public class SmallRenderer extends AbstractRenderer {
 	
@@ -85,6 +91,82 @@ public class SmallRenderer extends AbstractRenderer {
 				for (int dx = 0; dx < scale; dx++)
 					for (int dz = 0; dz < scale; dz++)
 						canvas.setPixel(pxX + dx, pxZ + dz, color);
+			}
+		}
+
+		SmallMapRenderArgs args = new SmallMapRenderArgs(map, player, view.getWorld());
+
+		updateCursor(args, canvas, player.getDisplayName(), true);
+	}
+
+	// TODO united args boilerplate
+	private class SmallMapRenderArgs
+	{
+		public final Location playerLoc;
+		public final int playerX;
+		public final int playerY;
+		public final int playerZ;
+
+		public final World world;
+		public final int xCenter;
+		public final int yCenter;
+		public final int zCenter;
+		public final Vector3i center;
+		public final int scale;
+		public final int width;
+		public final DrawingMapCoordinator coords;
+		
+		public final Vector3i mapPlayer;
+		public final int mapPlayerX;
+		public final int mapPlayerY;
+		
+		public SmallMapRenderArgs(SmallMap map, Player player, World world)
+		{
+			playerLoc = player.getLocation();
+			playerX = playerLoc.getBlockX();
+			playerY = playerLoc.getBlockY();
+			playerZ = playerLoc.getBlockZ();
+			
+			xCenter = map.getX();
+			yCenter = playerY;
+			zCenter = map.getZ();
+			center = new Vector3i(xCenter, yCenter, zCenter);
+			scale = map.getScale();
+			width = map.getWidth();
+			this.world = world;
+			coords = new DrawingMapCoordinator(PlaneRotation3D.DOWN_NORTH, width);
+
+			mapPlayer = coords.getMapCoord(center, new Vector3i(playerX, playerY, playerZ));
+			final int halfWidth = width / 2;
+			mapPlayer.add(new Vector3i(halfWidth, halfWidth, 0));
+			mapPlayerX = mapPlayer.getX();
+			mapPlayerY = mapPlayer.getY();
+		}
+	}
+
+
+	private void updateCursor(SmallMapRenderArgs args, MapCanvas canvas, String name, boolean renderCursor)
+	{
+		for (int i = 0; i < canvas.getCursors().size(); i++) {
+			MapCursor cursor = canvas.getCursors().getCursor(i);
+			if (cursor.getCaption() == name) {
+				canvas.getCursors().removeCursor(cursor);
+				break;
+			}
+		}
+		if (renderCursor) {
+			final int halfWidth = args.width / 2;
+			Vector cursorPlayer = args.coords.getMapCoord(
+					new Vector(args.xCenter, args.yCenter, args.zCenter),
+					args.playerLoc.toVector());
+			double x = cursorPlayer.getX();
+			double y = cursorPlayer.getY();
+			if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
+				x = Math.round(x * 2 * args.scale);
+				y = Math.round(y * 2 * args.scale);
+				MapCursor cursor = args.coords.getCursor3D((byte) x, (byte) y, args.playerLoc);
+				cursor.setCaption(name);
+				canvas.getCursors().addCursor(cursor);
 			}
 		}
 	}

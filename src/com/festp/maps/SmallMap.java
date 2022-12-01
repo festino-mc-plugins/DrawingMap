@@ -33,4 +33,8 @@ public class SmallMap implements IMap {
 	public int getZ() {
 		return startZ;
 	}
+
+	public int getWidth() {
+		return 128 / scale;
+	}
 }
