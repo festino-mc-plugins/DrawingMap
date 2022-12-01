@@ -88,6 +88,7 @@ public class MapUtils {
 	public static ItemStack getMap(int id, boolean scaleName)
 	{
 		ItemStack item = new ItemStack(Material.FILLED_MAP, 1);
+		item = NBTUtils.setMapId(item, id);
 		if (SmallMapUtils.isSmallMap(id)) {
 			ItemMeta meta = item.getItemMeta();
 			
@@ -103,7 +104,6 @@ public class MapUtils {
 			meta.setLore(Arrays.asList(new String[] { "Drawing" }));
 			item.setItemMeta(meta);
 		}
-		item = NBTUtils.setMapId(item, id); // must be at the end!
 		return item;
 	}
 	

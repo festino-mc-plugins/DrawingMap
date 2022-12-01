@@ -20,7 +20,7 @@ public class NBTUtils
 	@SuppressWarnings("deprecation")
 	public static ItemStack setMapId(ItemStack stack, int val)
 	{
-		if (!isValid(stack))
+		if (stack == null)
 			return stack;
 		MapMeta meta = (MapMeta)stack.getItemMeta();
 		meta.setMapId(val);
@@ -32,7 +32,7 @@ public class NBTUtils
 	@SuppressWarnings("deprecation")
 	public static int getMapId(ItemStack stack)
 	{
-		if (!isValid(stack))
+		if (stack == null || !stack.hasItemMeta())
 			return -1;
 		MapMeta meta = (MapMeta)stack.getItemMeta();
 		if (!meta.hasMapId())
@@ -42,7 +42,7 @@ public class NBTUtils
 	
 	public static ItemStack setInt(ItemStack stack, String key, int val)
 	{
-		if (!isValid(stack))
+		if (stack == null)
 			return stack;
 		ItemMeta meta = stack.getItemMeta();
 		NamespacedKey namedkey = new NamespacedKey(plugin, key);
@@ -54,7 +54,7 @@ public class NBTUtils
 	/** @return -1 if no key */
 	public static int getInt(ItemStack stack, String key)
 	{
-		if (!isValid(stack))
+		if (stack == null || !stack.hasItemMeta())
 			return -1;
 		PersistentDataContainer container = stack.getItemMeta().getPersistentDataContainer();
 		NamespacedKey namedkey = new NamespacedKey(plugin, key);
@@ -64,7 +64,7 @@ public class NBTUtils
 	}
 
 	public static ItemStack setBoolean(ItemStack stack, String key, boolean val) {
-		if (!isValid(stack))
+		if (stack == null)
 			return stack;
 		ItemMeta meta = stack.getItemMeta();
 		NamespacedKey namedkey = new NamespacedKey(plugin, key);
@@ -74,16 +74,12 @@ public class NBTUtils
 	}
 	/** @return false if no key */
 	public static boolean getBoolean(ItemStack stack, String key) {
-		if (!isValid(stack))
+		if (stack == null || !stack.hasItemMeta())
 			return false;
 		PersistentDataContainer container = stack.getItemMeta().getPersistentDataContainer();
 		NamespacedKey namedkey = new NamespacedKey(plugin, key);
 		if (!container.has(namedkey, PersistentDataType.BYTE))
 			return false;
 		return container.get(namedkey, PersistentDataType.BYTE) != 0;
-	}
-
-	private static boolean isValid(ItemStack stack) {
-		return stack != null && stack.hasItemMeta();
 	}
 }
