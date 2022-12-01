@@ -146,32 +146,32 @@ public class MapCraftHandler implements Listener {
 		int id = map.getId();
 
 		// prepare craft: if 0 or 1 changed
-		Runnable pre_task = new Runnable() {
+		Runnable preAction = new Runnable() {
 			@Override
 			public void run() {
-				ItemStack pre_map = MapUtils.getMap(id, true);
+				ItemStack preMap = MapUtils.getMap(id, true);
 				if (inv.contains(Material.PAPER) && map.getScale() / 2 > 1) {
-					pre_map = SmallMapUtils.getPreExtendedMap(id);
+					preMap = SmallMapUtils.getPreExtendedMap(id);
 				}
-				else if(inv.contains(Material.GLASS_PANE)) {
-					ItemMeta pre_map_meta = pre_map.getItemMeta();
-					pre_map_meta.setDisplayName("Map (" + map.getScale() + ":1)");
-					pre_map_meta.setLore(Lists.asList("", new String[] {ChatColor.GRAY+"Locked"}));
-					pre_map.setItemMeta(pre_map_meta);
+				else if (inv.contains(Material.GLASS_PANE)) {
+					ItemMeta preMapMeta = preMap.getItemMeta();
+					preMapMeta.setDisplayName("Map (" + map.getScale() + ":1)");
+					preMapMeta.setLore(Lists.asList("", new String[] {ChatColor.GRAY+"Locked"}));
+					preMap.setItemMeta(preMapMeta);
 				}
-				if (inv.contains(Material.PAPER) || inv.contains(Material.GLASS_PANE)) {
-					inv.setItem(2, pre_map);
+				if (inv.contains(Material.PAPER) || inv.contains(Material.GLASS_PANE)) { // pass copy
+					inv.setItem(2, preMap);
 				}
-				Runnable update_task = new Runnable() { @Override
+				Runnable updateAction = new Runnable() { @Override
 					public void run() {
 						for (HumanEntity human : inv.getViewers())
 							((Player)human).updateInventory();
 					} };
-				DelayedTask task = new DelayedTask(1, update_task);
-				TaskList.add(task);
+				DelayedTask updateTask = new DelayedTask(1, updateAction);
+				TaskList.add(updateTask);
 			} };
-		DelayedTask task = new DelayedTask(1, pre_task);
-		TaskList.add(task);
+		DelayedTask preTask = new DelayedTask(1, preAction);
+		TaskList.add(preTask);
 		
 		//craft: if 2 moved/dropped
 		if (inv == event.getClickedInventory() && event.getSlot() == 2 &&
@@ -183,22 +183,22 @@ public class MapCraftHandler implements Listener {
 				|| event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
 					&& MapUtils.getEmptySlot(event.getWhoClicked().getInventory()) >= 0) )
 		{
-			ItemStack map_item = inv.getItem(2);
+			ItemStack mapItem = inv.getItem(2);
 			// extending
 			if (inv.contains(Material.PAPER))
 			{
-				map_item = SmallMapUtils.extendMap(map);
+				mapItem = SmallMapUtils.extendMap(map);
 			}
 			// new locked
 			else if (inv.contains(Material.GLASS_PANE))
 			{
 				MapView view = MapUtils.genNewView(map);
-				NmsHelper.copyPixels(map, view);
 				view.setCenterX(0);
 				view.setCenterZ(0);
 				view.setScale(Scale.CLOSEST);
 				view.setLocked(true);
-				map_item = MapUtils.getMap(view.getId());
+				NmsHelper.copyPixels(map, view);
+				mapItem = MapUtils.getMap(view.getId());
 			}
 
 			event.setCancelled(true);
@@ -206,14 +206,14 @@ public class MapCraftHandler implements Listener {
 			item1.setAmount(item1.getAmount() - 1);
 			// TODO: try to stack
 			if (event.getAction() == InventoryAction.DROP_ALL_SLOT || event.getAction() == InventoryAction.DROP_ONE_SLOT)
-				Utils.drop(event.getWhoClicked().getEyeLocation(), map_item, 1);
+				Utils.drop(event.getWhoClicked().getEyeLocation(), mapItem, 1);
 			else if (event.getAction() == InventoryAction.PICKUP_ALL || event.getAction() == InventoryAction.PICKUP_HALF
 					|| event.getAction() == InventoryAction.PICKUP_ONE || event.getAction() == InventoryAction.PICKUP_SOME)
-				event.setCursor(map_item);
+				event.setCursor(mapItem);
 			else if (event.getAction() == InventoryAction.HOTBAR_MOVE_AND_READD || event.getAction() == InventoryAction.HOTBAR_SWAP)
-				event.getWhoClicked().getInventory().setItem(event.getHotbarButton(), map_item);
+				event.getWhoClicked().getInventory().setItem(event.getHotbarButton(), mapItem);
 			else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY)
-				event.getWhoClicked().getInventory().setItem(MapUtils.getEmptySlot(event.getWhoClicked().getInventory()), map_item);
+				event.getWhoClicked().getInventory().setItem(MapUtils.getEmptySlot(event.getWhoClicked().getInventory()), mapItem);
 		}
 	}
 	
@@ -226,32 +226,30 @@ public class MapCraftHandler implements Listener {
 		int id = map.getId();
 
 		// prepare craft: if 0 or 1 changed
-		Runnable pre_task = new Runnable() {
+		Runnable preAction = new Runnable() {
 			@Override
 			public void run() {
-				ItemStack pre_map = MapUtils.getMap(id, false);
+				ItemStack preMap = MapUtils.getMap(id, false);
 				if (inv.contains(Material.PAPER)) {
-					pre_map = null;
+					preMap = null;
 				} else if (inv.contains(Material.GLASS_PANE)) {
-					ItemMeta pre_map_meta = pre_map.getItemMeta();
-					pre_map_meta.setLore(Arrays.asList(new String[] {"", ChatColor.GRAY+"Finished"}));
-					pre_map.setItemMeta(pre_map_meta);
+					ItemMeta preMapMeta = preMap.getItemMeta();
+					preMapMeta.setLore(Arrays.asList(new String[] {"", ChatColor.GRAY+"Finished"}));
+					preMap.setItemMeta(preMapMeta);
 				} else {
-					pre_map = null;
+					preMap = null;
 				}
-				if (inv.contains(Material.PAPER) || inv.contains(Material.GLASS_PANE)) {
-					inv.setItem(2, pre_map);
-				}
-				Runnable update_task = new Runnable() { @Override
+				inv.setItem(2, preMap);
+				Runnable updateAction = new Runnable() { @Override
 					public void run() {
 						for (HumanEntity human : inv.getViewers())
 							((Player)human).updateInventory();
 					} };
-				DelayedTask task = new DelayedTask(1, update_task);
-				TaskList.add(task);
+				DelayedTask updateTask = new DelayedTask(1, updateAction);
+				TaskList.add(updateTask);
 			} };
-		DelayedTask task = new DelayedTask(1, pre_task);
-		TaskList.add(task);
+		DelayedTask preTask = new DelayedTask(1, preAction);
+		TaskList.add(preTask);
 		
 		//craft: if 2 moved/dropped
 		if (inv == event.getClickedInventory() && event.getSlot() == 2 &&
@@ -267,6 +265,7 @@ public class MapCraftHandler implements Listener {
 			ItemStack mapItem = inv.getItem(2);
 			if (inv.contains(Material.PAPER)) { // extending
 				mapItem = null;
+				System.out.println("UpDaTe");
 				return;
 			} else if (inv.contains(Material.GLASS_PANE)) { // locking
 				MapView view = MapUtils.getView(map);
