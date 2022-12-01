@@ -28,9 +28,8 @@ public class NmsHelper {
 	
 	private static Class<?> getNmsClass_WorldMap()
 	{
-		boolean isAbove1_17 = true;
 		try {
-			if (isAbove1_17)
+			if (UtilsVersion.USE_VERSION_INDEPENDENT_NMS)
 				return Class.forName("net.minecraft.world.level.saveddata.maps.WorldMap");
 			// net.minecraft.server.v1_16_R3.WorldMap
 			String version = getVersionString();
