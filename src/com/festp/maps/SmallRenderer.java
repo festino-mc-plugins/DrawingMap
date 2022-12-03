@@ -1,25 +1,33 @@
 package com.festp.maps;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapCursor;
+import org.bukkit.map.MapCursor.Type;
+import org.bukkit.map.MapCursorCollection;
 import org.bukkit.map.MapView;
 import org.bukkit.util.Vector;
 
+import com.festp.utils.NBTUtils;
 import com.festp.utils.Vector3i;
 
 public class SmallRenderer extends AbstractRenderer {
 	
 	static final int RENDER_DISTANCE_SQUARED = 128 * 128;
-
-	private BlockContainer lastColorBlock = new BlockContainer();
 	
 	final SmallMap map;
+	
+	final Map<String, MapCursor> cursors = new HashMap<>();
 	
 	public SmallRenderer(SmallMap map) {
 		super(map);
@@ -43,6 +51,7 @@ public class SmallRenderer extends AbstractRenderer {
 		int width = 128 / scale;
 		int minX = map.getX();
 		int minZ = map.getZ();
+		BlockContainer lastColorBlock = new BlockContainer();
 		for (int x = 0; x < width; x++)
 		{
 			// top block pseudorender
@@ -95,8 +104,33 @@ public class SmallRenderer extends AbstractRenderer {
 		}
 
 		SmallMapRenderArgs args = new SmallMapRenderArgs(map, player, view.getWorld());
+		
+		// TODO move code to scheduler
+		for (String playerName : cursors.keySet()) {
+			Player p = Bukkit.getPlayerExact(playerName);
+			if (!p.isOnline()) {
+				cursors.remove(playerName);
+				continue;
+			}
+			boolean found = false;
+			for (ItemStack stack : p.getInventory().getContents()) {
+				if (NBTUtils.getMapId(stack) == map.getId()) {
+					found = true;
+					break;
+				}
+			}
 
-		updateCursor(args, canvas, player.getDisplayName(), true);
+			if (!found) {
+				cursors.remove(playerName);
+				continue;
+			}
+			
+			renderCursor(args, canvas, player);
+		}
+		if (!cursors.containsKey(player.getName()))
+			renderCursor(args, canvas, player);
+		
+		updateCursors(canvas);
 	}
 
 	// TODO united args boilerplate
@@ -126,13 +160,13 @@ public class SmallRenderer extends AbstractRenderer {
 			playerX = playerLoc.getBlockX();
 			playerY = playerLoc.getBlockY();
 			playerZ = playerLoc.getBlockZ();
-			
-			xCenter = map.getX();
-			yCenter = playerY;
-			zCenter = map.getZ();
-			center = new Vector3i(xCenter, yCenter, zCenter);
+
 			scale = map.getScale();
 			width = map.getWidth();
+			xCenter = map.getX() + width / 2;
+			yCenter = playerY;
+			zCenter = map.getZ() + width / 2;
+			center = new Vector3i(xCenter, yCenter, zCenter);
 			this.world = world;
 			coords = new DrawingMapCoordinator(PlaneRotation3D.DOWN_NORTH, width);
 
@@ -144,30 +178,51 @@ public class SmallRenderer extends AbstractRenderer {
 		}
 	}
 
-
-	private void updateCursor(SmallMapRenderArgs args, MapCanvas canvas, String name, boolean renderCursor)
+	private void renderCursor(SmallMapRenderArgs args, MapCanvas canvas, Player player) {
+		final int halfWidth = args.width / 2;
+		Vector cursorPlayer = args.coords.getMapCoord(
+				new Vector(args.xCenter, args.yCenter, args.zCenter),
+				args.playerLoc.toVector());
+		double x = cursorPlayer.getX();
+		double y = cursorPlayer.getY();
+		if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
+			x = Math.round(x * 2 * args.scale);
+			y = Math.round(y * 2 * args.scale);
+			MapCursor cursor = args.coords.getCursor3D((byte) x, (byte) y, args.playerLoc, true);
+			cursor.setCaption(player.getDisplayName());
+			cursors.put(player.getName(), cursor);
+		}
+		else {
+			final int maxDistance = halfWidth + 2 * args.width;
+			double mapX = Math.round(x * 2 * args.scale);
+			double mapY = Math.round(y * 2 * args.scale);
+			mapX = clamp(mapX, -128, 127);
+			mapY = clamp(mapY, -128, 127);
+			MapCursor cursor = args.coords.getCursor3D((byte) mapX, (byte) mapY, args.playerLoc, true);
+			cursor.setDirection((byte)0);
+			cursor.setCaption(player.getDisplayName());
+			if (-maxDistance <= x && x < maxDistance && -maxDistance <= y && y < maxDistance)
+				cursor.setType(Type.WHITE_CIRCLE);
+			else
+				cursor.setType(Type.SMALL_WHITE_CIRCLE);
+			cursors.put(player.getName(), cursor);
+		}
+	}
+	
+	private double clamp(double x, double a, double b) {
+		return Math.max(a, Math.min(b, x));
+	}
+	
+	private void updateCursors(MapCanvas canvas)
 	{
-		for (int i = 0; i < canvas.getCursors().size(); i++) {
-			MapCursor cursor = canvas.getCursors().getCursor(i);
-			if (cursor.getCaption() == name) {
-				canvas.getCursors().removeCursor(cursor);
-				break;
-			}
-		}
-		if (renderCursor) {
-			final int halfWidth = args.width / 2;
-			Vector cursorPlayer = args.coords.getMapCoord(
-					new Vector(args.xCenter, args.yCenter, args.zCenter),
-					args.playerLoc.toVector());
-			double x = cursorPlayer.getX();
-			double y = cursorPlayer.getY();
-			if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
-				x = Math.round(x * 2 * args.scale);
-				y = Math.round(y * 2 * args.scale);
-				MapCursor cursor = args.coords.getCursor3D((byte) x, (byte) y, args.playerLoc);
-				cursor.setCaption(name);
-				canvas.getCursors().addCursor(cursor);
-			}
-		}
+		// https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/map/CraftMapRenderer.java#32
+        MapCursorCollection cursors = canvas.getCursors();
+        while (cursors.size() > 0) {
+            cursors.removeCursor(cursors.getCursor(0));
+        }
+
+        for (MapCursor cursor : this.cursors.values()) {
+        	cursors.addCursor(cursor);
+        }
 	}
 }

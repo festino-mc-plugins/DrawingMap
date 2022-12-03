@@ -215,7 +215,6 @@ public class DrawingRenderer extends AbstractRenderer {
 	
 	private void updateCursor(DrawingMapRenderArgs args, MapCanvas canvas, String name, boolean renderCursor)
 	{
-		final int halfWidth = args.width / 2;
 		for (int i = 0; i < canvas.getCursors().size(); i++) {
 			MapCursor cursor = canvas.getCursors().getCursor(i);
 			if (cursor.getCaption() == name) {
@@ -224,6 +223,7 @@ public class DrawingRenderer extends AbstractRenderer {
 			}
 		}
 		if (renderCursor) {
+			final int halfWidth = args.width / 2;
 			Vector cursorPlayer = args.coords.getMapCoord(
 					new Vector(args.xCenter, args.yCenter, args.zCenter),
 					args.playerLoc.toVector());
@@ -232,7 +232,7 @@ public class DrawingRenderer extends AbstractRenderer {
 			if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
 				x = Math.round(x * 2 * args.scale);
 				y = Math.round(y * 2 * args.scale);
-				MapCursor cursor = args.coords.getCursor3D((byte) x, (byte) y, args.playerLoc);
+				MapCursor cursor = args.coords.getCursor3D((byte) x, (byte) y, args.playerLoc, false);
 				cursor.setCaption(name);
 				canvas.getCursors().addCursor(cursor);
 			}

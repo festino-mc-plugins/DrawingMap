@@ -1,5 +1,6 @@
 package com.festp.utils;
 
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -20,7 +21,7 @@ public class NBTUtils
 	@SuppressWarnings("deprecation")
 	public static ItemStack setMapId(ItemStack stack, int val)
 	{
-		if (stack == null)
+		if (stack == null || stack.getType() != Material.FILLED_MAP)
 			return stack;
 		MapMeta meta = (MapMeta)stack.getItemMeta();
 		meta.setMapId(val);
@@ -32,7 +33,7 @@ public class NBTUtils
 	@SuppressWarnings("deprecation")
 	public static int getMapId(ItemStack stack)
 	{
-		if (stack == null || !stack.hasItemMeta())
+		if (stack == null || !stack.hasItemMeta() || !(stack.getItemMeta() instanceof MapMeta))
 			return -1;
 		MapMeta meta = (MapMeta)stack.getItemMeta();
 		if (!meta.hasMapId())
