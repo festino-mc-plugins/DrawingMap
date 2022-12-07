@@ -19,6 +19,7 @@ import org.bukkit.map.MapView;
 import org.bukkit.util.Vector;
 
 import com.festp.utils.NBTUtils;
+import com.festp.utils.NmsWorldMapHelper;
 import com.festp.utils.Vector3i;
 
 public class SmallRenderer extends AbstractRenderer {
@@ -108,7 +109,7 @@ public class SmallRenderer extends AbstractRenderer {
 		// TODO move code to scheduler
 		for (String playerName : cursors.keySet()) {
 			Player p = Bukkit.getPlayerExact(playerName);
-			if (!p.isOnline()) {
+			if (p == null || !p.isOnline()) {
 				cursors.remove(playerName);
 				continue;
 			}
@@ -214,7 +215,8 @@ public class SmallRenderer extends AbstractRenderer {
 	}
 	
 	private void updateCursors(MapCanvas canvas)
-	{
+	{canvas.getMapView().setTrackingPosition(true);
+	canvas.getMapView().setUnlimitedTracking(true);
 		// https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/map/CraftMapRenderer.java#32
         MapCursorCollection cursors = canvas.getCursors();
         while (cursors.size() > 0) {
@@ -222,6 +224,23 @@ public class SmallRenderer extends AbstractRenderer {
         }
 
         for (MapCursor cursor : this.cursors.values()) {
+        	//cursors.addCursor(cursor);
+        }
+
+        int mapScale = map.getScale();
+        int startX = 2 * mapScale * (canvas.getMapView().getCenterX() - map.getX()) - 128;
+        int startZ = 2 * mapScale * (canvas.getMapView().getCenterZ() - map.getZ()) - 128;
+        MapCursorCollection cursors1 = NmsWorldMapHelper.getCursors(canvas.getMapView());
+        for (int i = 0; i < cursors1.size(); i++) {
+        	MapCursor cursor = cursors1.getCursor(i);
+        	int x = cursor.getX() * mapScale + startX;
+        	if (x < -128 || 127 < x)
+        		continue;
+        	cursor.setX((byte)x);
+        	int z = cursor.getY() * mapScale + startZ;
+        	if (z < -128 || 127 < z)
+        		continue;
+        	cursor.setY((byte)z);
         	cursors.addCursor(cursor);
         }
 	}

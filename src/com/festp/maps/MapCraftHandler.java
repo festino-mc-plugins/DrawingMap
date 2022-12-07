@@ -27,7 +27,7 @@ import com.festp.DelayedTask;
 import com.festp.Main;
 import com.festp.TaskList;
 import com.festp.utils.NBTUtils;
-import com.festp.utils.NmsHelper;
+import com.festp.utils.NmsWorldMapHelper;
 import com.festp.utils.Utils;
 import com.google.common.collect.Lists;
 
@@ -197,7 +197,7 @@ public class MapCraftHandler implements Listener {
 				view.setCenterZ(0);
 				view.setScale(Scale.CLOSEST);
 				view.setLocked(true);
-				NmsHelper.copyPixels(map, view);
+				NmsWorldMapHelper.copyPixels(map, view);
 				mapItem = MapUtils.getMap(view.getId());
 			}
 
@@ -269,7 +269,7 @@ public class MapCraftHandler implements Listener {
 				return;
 			} else if (inv.contains(Material.GLASS_PANE)) { // locking
 				MapView view = MapUtils.getView(map);
-				NmsHelper.copyPixels(map, view);
+				NmsWorldMapHelper.copyPixels(map, view);
 				view.setCenterX(0);
 				view.setCenterZ(0);
 				view.setScale(Scale.CLOSEST);

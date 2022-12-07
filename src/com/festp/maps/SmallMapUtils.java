@@ -26,49 +26,51 @@ public class SmallMapUtils {
 		{
 			MapView view = MapUtils.getView(map);
 			Location loc = new Location(view.getWorld(), map.getX(), 0, map.getZ());
-			SmallMap new_map = genSmallMap(loc, map.getScale() / 2);
-			return MapUtils.getMap(new_map.getId(), false);
+			SmallMap newMap = genSmallMap(loc, map.getScale() / 2);
+			return MapUtils.getMap(newMap.getId(), false);
 		}
 		else
 		{
 			MapView view = MapUtils.genNewView(map);
-			int x = (int) Math.floor(map.getX() / 128.0) * 128;
-			int z = (int) Math.floor(map.getZ() / 128.0) * 128;
-			view.setCenterX(x + 64);
-			view.setCenterZ(z + 64);
-			view.setScale(Scale.CLOSEST); // 1:1
+			initVanillaMap(view, map.getX() + map.getWidth() / 2, map.getZ() + map.getWidth() / 2);
 			return MapUtils.getMap(view.getId());
 		}
 	}
 	public static ItemStack getPreExtendedMap(int id)
 	{
 		SmallMap map = (SmallMap) MapFileManager.load(id);
-		ItemStack pre_map = MapUtils.getMap(id, true);
-		ItemMeta pre_map_meta = pre_map.getItemMeta();
+		ItemStack preMap = MapUtils.getMap(id, true);
+		ItemMeta preMapMeta = preMap.getItemMeta();
 		int scale = map.getScale() / 2;
-		pre_map_meta.setDisplayName("Map (" + scale + ":1)");
+		preMapMeta.setDisplayName("Map (" + scale + ":1)");
 		String[] lore = new String[] { "Scaling at " + scale + ":1" };
-		pre_map_meta.setLore(Lists.asList("", lore));
-		pre_map.setItemMeta(pre_map_meta);
+		preMapMeta.setLore(Lists.asList("", lore));
+		preMap.setItemMeta(preMapMeta);
 		
-		return pre_map;
+		return preMap;
 	}
 	
 	/** create new map and attach renderer*/
 	public static SmallMap genSmallMap(Location l, int scale)
 	{
 		MapView view = Bukkit.createMap(l.getWorld());
-		view.setScale(Scale.CLOSEST);
+		initVanillaMap(view, l.getBlockX(), l.getBlockZ());
 
 		int ratio = 128 / scale;
-		int start_x = (int)Math.floor(l.getBlockX() / (float)ratio) * ratio;
-		int start_z = (int)Math.floor(l.getBlockZ() / (float)ratio) * ratio;
-		SmallMap newMap = new SmallMap(view.getId(), scale, start_x, start_z);
+		int startX = floorCoord(l.getBlockX(), ratio);
+		int startZ = floorCoord(l.getBlockZ(), ratio);
+		SmallMap newMap = new SmallMap(view.getId(), scale, startX, startZ);
 		SmallRenderer renderer = new SmallRenderer(newMap);
 		MapUtils.setRenderer(view, renderer);
 		MapFileManager.addMap(newMap);
 		
 		return newMap;
+	}
+	
+	private static void initVanillaMap(MapView view, int x, int z) {
+		view.setCenterX(floorCoord(x, 128) + 64);
+		view.setCenterZ(floorCoord(z, 128) + 64);
+		view.setScale(Scale.CLOSEST); // 1:1
 	}
 	
 	public static boolean isSmallMap(int id)
@@ -94,5 +96,11 @@ public class SmallMapUtils {
 		if (1 <= scale && scale <= 128)
 			return scale;
 		return -1;
+	}
+	
+	private static int floorCoord(int x, int step) {
+		// vanilla maps grid aligned on (-64, -64), center is (0, 0) for 1:1
+		return (int)Math.floor((x + 64) / (float)step) * step - 64;
+		//return (int)Math.floor(x / (float)step) * step;
 	}
 }
