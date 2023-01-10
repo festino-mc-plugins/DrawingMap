@@ -55,14 +55,17 @@ public class SmallMapUtils {
 	{
 		MapView view = Bukkit.createMap(l.getWorld());
 		initVanillaMap(view, l.getBlockX(), l.getBlockZ());
+		view.setTrackingPosition(true);
+		view.setUnlimitedTracking(true);
+		MapUtils.removeRenderers(view);
 
 		int ratio = 128 / scale;
 		int startX = floorCoord(l.getBlockX(), ratio);
 		int startZ = floorCoord(l.getBlockZ(), ratio);
 		SmallMap newMap = new SmallMap(view.getId(), scale, startX, startZ);
 		SmallRenderer renderer = new SmallRenderer(newMap);
-		MapUtils.removeRenderers(view);
 		MapUtils.setRenderer(view, renderer);
+		
 		MapFileManager.addMap(newMap);
 		
 		return newMap;

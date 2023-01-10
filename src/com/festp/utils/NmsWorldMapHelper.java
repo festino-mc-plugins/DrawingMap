@@ -45,18 +45,19 @@ public class NmsWorldMapHelper
 	{
 		return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 	}
-	
 
+	/** use <b>data[y * 128 + x]</b> to get colors by x and y coordinates 
+	 * @return <b>null</b> if couldn't get pixels */
 	@SuppressWarnings("unchecked")
-	public static boolean copyPixels(IMap mapFrom, MapView viewTo) {
+	public static byte[] getColors(MapView mapView)
+	{
 		try {
-			MapView oldView = MapUtils.getView(mapFrom);
-			Field fieldCanvases = oldView.getClass().getDeclaredField("canvases");
+			Field fieldCanvases = mapView.getClass().getDeclaredField("canvases");
 			fieldCanvases.setAccessible(true);
-			Object preCanvases = fieldCanvases.get(oldView);
+			Object preCanvases = fieldCanvases.get(mapView);
 			if (!(preCanvases instanceof Map<?, ?>)) {
 				Logger.severe("NmsWorldMapHelper couldn't get canvases");
-				return false;
+				return null;
 			}
 
 			Class<?> classCraftMapCanvas = getCraftbukkitClass("map.CraftMapCanvas");
@@ -75,12 +76,27 @@ public class NmsWorldMapHelper
 					break;
 				}
 			}
+			return pixels;
 			/* org.bukkit.craftbukkit.v1_18_R1.map.CraftMapCanvas
 			 * public byte getPixel(int x, int y);
 		     if (x < 0 || y < 0 || x >= 128 || y >= 128)
 		         return 0;
 		     byte[] data = this.buffer;
 		     return data[y * 128 + x]; */
+		} catch (Exception e) {
+			Logger.severe("Error while get pixels from map #" + mapView.getId());
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static boolean copyPixels(IMap mapFrom, MapView viewTo)
+	{
+		try {
+			MapView oldView = MapUtils.getView(mapFrom);
+			byte[] pixels = getColors(oldView);
+			if (pixels == null)
+				return false;
 			byte[] colors = new byte[128 * 128];
 			for (int i = 0; i < colors.length; i++) {
 				colors[i] = pixels[i];

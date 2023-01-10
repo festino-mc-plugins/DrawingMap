@@ -36,7 +36,8 @@ public class SmallRenderer extends AbstractRenderer {
 	}
 
 	@Override
-	protected void renderSpecific(MapView view, MapCanvas canvas, Player player) {
+	protected void renderSpecific(MapView view, MapCanvas canvas, Player player)
+	{
 		Integer mainId = MapUtils.getMapId(player.getInventory().getItemInMainHand());
 		if (mainId == null || mainId != view.getId())
 		{
@@ -44,7 +45,7 @@ public class SmallRenderer extends AbstractRenderer {
 			if (offId == null || offId != view.getId())
 				return;
 		}
-		//canvas.setCursors(null);new MapCursorCollection()
+		
 		int playerX = player.getLocation().getBlockX();
 		int playerZ = player.getLocation().getBlockZ();
 		
@@ -103,6 +104,10 @@ public class SmallRenderer extends AbstractRenderer {
 						canvas.setPixel(pxX + dx, pxZ + dz, color);
 			}
 		}
+		/*byte[] pixels = NmsWorldMapHelper.getColors(view);
+		for (int y = 0; y < scale; y++)
+			for (int x = 0; x < scale; x++)
+				canvas.setPixel(x, y, pixels[128 * y + x]);*/
 
 		SmallMapRenderArgs args = new SmallMapRenderArgs(map, player, view.getWorld());
 		
@@ -214,9 +219,12 @@ public class SmallRenderer extends AbstractRenderer {
 		return Math.max(a, Math.min(b, x));
 	}
 	
+	private int clamp(int x, int a, int b) {
+		return Math.max(a, Math.min(b, x));
+	}
+	
 	private void updateCursors(MapCanvas canvas)
-	{canvas.getMapView().setTrackingPosition(true);
-	canvas.getMapView().setUnlimitedTracking(true);
+	{
 		// https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/map/CraftMapRenderer.java#32
         MapCursorCollection cursors = canvas.getCursors();
         while (cursors.size() > 0) {
@@ -233,13 +241,28 @@ public class SmallRenderer extends AbstractRenderer {
         MapCursorCollection cursors1 = NmsWorldMapHelper.getCursors(canvas.getMapView());
         for (int i = 0; i < cursors1.size(); i++) {
         	MapCursor cursor = cursors1.getCursor(i);
-        	int x = cursor.getX() * mapScale + startX;
-        	if (x < -128 || 127 < x)
-        		continue;
-        	cursor.setX((byte)x);
+        	// TODO precise player position
+        	int x = cursor.getX() * mapScale + startX - mapScale;
         	int z = cursor.getY() * mapScale + startZ;
-        	if (z < -128 || 127 < z)
-        		continue;
+        	if (x < -128 || 127 < x || z < -128 || 127 < z) {
+        		if (cursor.getType() == Type.WHITE_POINTER
+        				|| cursor.getType() == Type.WHITE_CIRCLE
+        				|| cursor.getType() == Type.SMALL_WHITE_CIRCLE) {
+        			final int halfWidth = 128;
+        			final int maxDistance = 5 * halfWidth;
+        			if (x <= -maxDistance || maxDistance < x || z <= -maxDistance || maxDistance < z)
+        				cursor.setType(Type.SMALL_WHITE_CIRCLE);
+        			else
+        				cursor.setType(Type.WHITE_CIRCLE);
+        			cursor.setDirection((byte)0);
+        			x = clamp(x, -128, 127);
+        			z = clamp(z, -128, 127);
+        		}
+        		else {
+            		continue;
+        		}
+        	}
+        	cursor.setX((byte)x);
         	cursor.setY((byte)z);
         	cursors.addCursor(cursor);
         }
