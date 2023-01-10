@@ -61,6 +61,7 @@ public class SmallMapUtils {
 		int startZ = floorCoord(l.getBlockZ(), ratio);
 		SmallMap newMap = new SmallMap(view.getId(), scale, startX, startZ);
 		SmallRenderer renderer = new SmallRenderer(newMap);
+		MapUtils.removeRenderers(view);
 		MapUtils.setRenderer(view, renderer);
 		MapFileManager.addMap(newMap);
 		
