@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -28,7 +29,7 @@ public class SmallRenderer extends AbstractRenderer {
 	
 	final SmallMap map;
 	
-	final Map<String, MapCursor> cursors = new HashMap<>();
+	final Map<String, MapCursor> netherCursors = new HashMap<>();
 	
 	public SmallRenderer(SmallMap map) {
 		super(map);
@@ -104,18 +105,14 @@ public class SmallRenderer extends AbstractRenderer {
 						canvas.setPixel(pxX + dx, pxZ + dz, color);
 			}
 		}
-		/*byte[] pixels = NmsWorldMapHelper.getColors(view);
-		for (int y = 0; y < scale; y++)
-			for (int x = 0; x < scale; x++)
-				canvas.setPixel(x, y, pixels[128 * y + x]);*/
 
 		SmallMapRenderArgs args = new SmallMapRenderArgs(map, player, view.getWorld());
 		
 		// TODO move code to scheduler
-		for (String playerName : cursors.keySet()) {
+		for (String playerName : netherCursors.keySet()) {
 			Player p = Bukkit.getPlayerExact(playerName);
-			if (p == null || !p.isOnline()) {
-				cursors.remove(playerName);
+			if (p == null || !p.isOnline() || p.getWorld().getEnvironment() != Environment.NETHER) {
+				netherCursors.remove(playerName);
 				continue;
 			}
 			boolean found = false;
@@ -127,14 +124,16 @@ public class SmallRenderer extends AbstractRenderer {
 			}
 
 			if (!found) {
-				cursors.remove(playerName);
+				netherCursors.remove(playerName);
 				continue;
 			}
 			
-			renderCursor(args, canvas, player);
+			renderNetherCursor(args, canvas, p);
 		}
-		if (!cursors.containsKey(player.getName()))
-			renderCursor(args, canvas, player);
+		if (!netherCursors.containsKey(player.getName())) {
+			// TODO remove original pointer
+			renderNetherCursor(args, canvas, player);
+		}
 		
 		updateCursors(canvas);
 	}
@@ -184,19 +183,20 @@ public class SmallRenderer extends AbstractRenderer {
 		}
 	}
 
-	private void renderCursor(SmallMapRenderArgs args, MapCanvas canvas, Player player) {
+	private void renderNetherCursor(SmallMapRenderArgs args, MapCanvas canvas, Player player) {
 		final int halfWidth = args.width / 2;
 		Vector cursorPlayer = args.coords.getMapCoord(
 				new Vector(args.xCenter, args.yCenter, args.zCenter),
-				args.playerLoc.toVector());
+				args.playerLoc.toVector().multiply(8));
 		double x = cursorPlayer.getX();
 		double y = cursorPlayer.getY();
 		if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
 			x = Math.round(x * 2 * args.scale);
 			y = Math.round(y * 2 * args.scale);
-			MapCursor cursor = args.coords.getCursor3D((byte) x, (byte) y, args.playerLoc, true);
-			cursor.setCaption(player.getDisplayName());
-			cursors.put(player.getName(), cursor);
+			MapCursor cursor = args.coords.getCursor3D((byte) x, (byte) y, args.playerLoc.multiply(8), true);
+			cursor.setType(Type.RED_POINTER);
+			//cursor.setCaption(player.getDisplayName());
+			netherCursors.put(player.getName(), cursor);
 		}
 		else {
 			final int maxDistance = halfWidth + 2 * args.width;
@@ -204,14 +204,14 @@ public class SmallRenderer extends AbstractRenderer {
 			double mapY = Math.round(y * 2 * args.scale);
 			mapX = clamp(mapX, -128, 127);
 			mapY = clamp(mapY, -128, 127);
-			MapCursor cursor = args.coords.getCursor3D((byte) mapX, (byte) mapY, args.playerLoc, true);
+			MapCursor cursor = args.coords.getCursor3D((byte) mapX, (byte) mapY, args.playerLoc.multiply(8), true);
 			cursor.setDirection((byte)0);
-			cursor.setCaption(player.getDisplayName());
+			//cursor.setCaption(player.getDisplayName());
 			if (-maxDistance <= x && x < maxDistance && -maxDistance <= y && y < maxDistance)
 				cursor.setType(Type.WHITE_CIRCLE);
 			else
 				cursor.setType(Type.SMALL_WHITE_CIRCLE);
-			cursors.put(player.getName(), cursor);
+			netherCursors.put(player.getName(), cursor);
 		}
 	}
 	
@@ -231,16 +231,17 @@ public class SmallRenderer extends AbstractRenderer {
             cursors.removeCursor(cursors.getCursor(0));
         }
 
-        for (MapCursor cursor : this.cursors.values()) {
-        	//cursors.addCursor(cursor);
+        for (MapCursor cursor : this.netherCursors.values()) {
+        	cursors.addCursor(cursor);
         }
 
         int mapScale = map.getScale();
         int startX = 2 * mapScale * (canvas.getMapView().getCenterX() - map.getX()) - 128;
         int startZ = 2 * mapScale * (canvas.getMapView().getCenterZ() - map.getZ()) - 128;
-        MapCursorCollection cursors1 = NmsWorldMapHelper.getCursors(canvas.getMapView());
-        for (int i = 0; i < cursors1.size(); i++) {
-        	MapCursor cursor = cursors1.getCursor(i);
+        MapCursorCollection vanillaCursors = NmsWorldMapHelper.getCursors(canvas.getMapView());
+        for (int i = 0; i < vanillaCursors.size(); i++) {
+        	MapCursor cursor = vanillaCursors.getCursor(i);
+        	System.out.println(canvas.getMapView().getId() + " " + cursor.getType() + " " + cursor.getX() + " " + cursor.getY());
         	// TODO precise player position
         	int x = cursor.getX() * mapScale + startX - mapScale;
         	int z = cursor.getY() * mapScale + startZ;
