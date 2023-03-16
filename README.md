@@ -1,8 +1,9 @@
 # DrawingMap
 
-Minecraft plugin adds:
-* Small scale maps (8:1, 4:1, 2:1)
-* Drawing maps
+Minecraft plugin adds:  
+* Small scale maps (8:1, 4:1, 2:1)  
+* Drawing maps  
+
 Both map types have vanilla integration, such as full support for cartographer tables.
 
 <b>Drawing maps</b>  
