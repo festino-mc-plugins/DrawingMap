@@ -3,6 +3,7 @@ package com.festp.commands;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -10,10 +11,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.map.MapView;
 
+import com.festp.maps.DrawingMap;
+import com.festp.maps.IMap;
 import com.festp.maps.MapCraftHandler;
+import com.festp.maps.MapFileManager;
 import com.festp.maps.MapUtils;
 import com.festp.maps.ScanManager;
+import com.festp.maps.SmallMap;
 import com.festp.utils.Utils;
 
 public class CommandWorker implements CommandExecutor, TabCompleter
@@ -23,17 +29,21 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 	private final static String GET_SUBCOMMAND = "get";
 	private final static String CREATE_SUBCOMMAND = "create";
 	private final static String SCAN_SUBCOMMAND = "scan";
+	private final static String GETINFO_SUBCOMMAND = "getinfo";
 	
 	public final static String CONFIG_USAGE_SHORT = "/" + MAIN_COMMAND + " " + CONFIG_SUBCOMMAND;
 	public final static String GET_USAGE_SHORT = "/" + MAIN_COMMAND + " " + GET_SUBCOMMAND + " <id>";
+	public final static String GETINFO_USAGE_SHORT = "/" + MAIN_COMMAND + " " + GETINFO_SUBCOMMAND + " <id>";
 	public final static String CREATE_USAGE_SHORT = "/" + MAIN_COMMAND + " " + CREATE_SUBCOMMAND + " <scale/drawing> [count]";
 	public final static String SCAN_USAGE_SHORT = "/" + MAIN_COMMAND + " " + SCAN_SUBCOMMAND + " <on/off>";
 	public final static String GET_USAGE = "Usage:\n" + GET_USAGE_SHORT;
+	public final static String GETINFO_USAGE = "Usage:\n" + GETINFO_USAGE_SHORT;
 	public final static String CREATE_USAGE = "Usage:\n" + CREATE_USAGE_SHORT;
 	public final static String SCAN_USAGE = "Usage:\n" + SCAN_USAGE_SHORT;
 	public final static String MAIN_USAGE = "Usage:\n"
 			+ CONFIG_USAGE_SHORT + "\n"
 			+ GET_USAGE_SHORT + "\n"
+			+ GETINFO_USAGE_SHORT + "\n"
 			+ CREATE_USAGE_SHORT + "\n"
 			+ SCAN_USAGE_SHORT + "\n";
 
@@ -97,6 +107,50 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 				ItemStack map = MapUtils.getMap(id);
 				Player player = (Player)sender;
 				Utils.giveOrDrop(player, map);
+				
+				return true;
+			}
+			else if (args[0].equalsIgnoreCase(GETINFO_SUBCOMMAND))
+			{
+				if (args.length == 1)
+				{
+					sender.sendMessage(COLOR_USAGE + GETINFO_USAGE);
+					return false;
+				}
+
+				int id = -1;
+				try {
+					id = Integer.parseInt(args[1]);
+				} catch(Exception e) {
+					sender.sendMessage(COLOR_ERROR + "\"" + args[1] + "\" is not valid id. Please use integer numbers.");
+					return false;
+				}
+				if (!MapUtils.isExists(id))
+				{
+					sender.sendMessage(COLOR_ERROR + "Map #" + id + " doesn't exists.");
+					return false;
+				}
+
+				// TODO map info class
+				String type = "error";
+				String info = "";
+				MapView mp = Bukkit.getMap(id);
+				IMap map = MapFileManager.load(id);
+				if (map == null) {
+					type = "vanilla";
+					info = mp.getWorld() + " "+ "(" + mp.getCenterX() + ", " + mp.getCenterZ() + "), scale: " + mp.getScale() + ", is_locked: " + mp.isLocked();
+				} else if (map instanceof SmallMap) {
+					type = "small";
+					SmallMap sm = (SmallMap) map;
+					info = mp.getWorld() + " "+ "(" + sm.getX() + ", " + sm.getZ() + "), scale: " + sm.getScale();
+				} else if (map instanceof DrawingMap) {
+					type = "drawing";
+					DrawingMap dm = (DrawingMap) map;
+					info = mp.getWorld() + " "+ "(" + dm.getX() + ", " + dm.getY() + ", " + dm.getZ() + "), scale: " + dm.getScale()
+							+ ", direction: " + dm.getDirection() + ", is_full_discovered: " + dm.isFullDicovered();
+				}
+				sender.sendMessage(COLOR_OK + "Map #" + id + " is " + type);
+				sender.sendMessage(COLOR_OK + info);
 				
 				return true;
 			}
@@ -198,6 +252,7 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 		
 		if (args.length <= 1) {
 			options.add(CONFIG_SUBCOMMAND);
+			options.add(GETINFO_SUBCOMMAND);
 			if (sender instanceof Player)
 			{
 				options.add(GET_SUBCOMMAND);
@@ -210,7 +265,7 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 			return options;
 		
 		if (args.length == 2) {
-			if (args[0].equalsIgnoreCase(GET_SUBCOMMAND)) {
+			if (args[0].equalsIgnoreCase(GET_SUBCOMMAND) || args[0].equalsIgnoreCase(GETINFO_SUBCOMMAND)) {
 				int maxId = MapUtils.getMaxId();
 				if (maxId >= 0)
 					options.add("0");
