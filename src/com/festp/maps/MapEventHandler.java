@@ -22,7 +22,7 @@ import org.bukkit.map.MapView.Scale;
 
 import com.festp.utils.Utils;
 
-public class MapHandler implements Listener {
+public class MapEventHandler implements Listener {
 
 	// TODO add reload persistence
 	/** load last session map canvas */

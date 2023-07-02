@@ -7,7 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.festp.commands.CommandWorker;
 import com.festp.maps.MapCraftHandler;
-import com.festp.maps.MapHandler;
+import com.festp.maps.MapEventHandler;
 import com.festp.maps.ScanManager;
 import com.festp.utils.NBTUtils;
 
@@ -33,7 +33,7 @@ public class Main extends JavaPlugin implements Listener
     	
     	MapCraftHandler mapCrafts = new MapCraftHandler();
     	pm.registerEvents(mapCrafts, this);
-    	MapHandler mapHandler = new MapHandler();
+    	MapEventHandler mapHandler = new MapEventHandler();
     	pm.registerEvents(mapHandler, this);
 
     	craft_manager = new CraftManager(this, getServer());
