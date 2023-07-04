@@ -264,7 +264,7 @@ public class MapFileManager {
 		}
 		if (errorCount > 0)
 		{
-			Logger.severe("Errors(" + errorCount + ") while saving map: unknown color codes, last color id " + lastError);
+			Logger.severe(errorCount + " errors while saving map #" + map.getId() + ": unknown color codes, last color id " + lastError);
 		}
 		
 		MapFileManager.saveImage(map.getId(), image);
