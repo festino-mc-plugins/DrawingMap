@@ -133,23 +133,25 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 
 				// TODO map info class
 				String type = "error";
+				String vanillaInfo = "";
 				String info = "";
 				MapView mp = Bukkit.getMap(id);
+				vanillaInfo = mp.getWorld().getName() + " "+ "(" + mp.getCenterX() + ", " + mp.getCenterZ() + "), scale: " + mp.getScale() + ", is_locked: " + mp.isLocked();
 				IMap map = MapFileManager.load(id);
 				if (map == null) {
 					type = "vanilla";
-					info = mp.getWorld() + " "+ "(" + mp.getCenterX() + ", " + mp.getCenterZ() + "), scale: " + mp.getScale() + ", is_locked: " + mp.isLocked();
 				} else if (map instanceof SmallMap) {
 					type = "small";
 					SmallMap sm = (SmallMap) map;
-					info = mp.getWorld() + " "+ "(" + sm.getX() + ", " + sm.getZ() + "), scale: " + sm.getScale();
+					info = "(" + sm.getX() + ", " + sm.getZ() + "), scale: " + sm.getScale();
 				} else if (map instanceof DrawingMap) {
 					type = "drawing";
 					DrawingMap dm = (DrawingMap) map;
-					info = mp.getWorld() + " "+ "(" + dm.getX() + ", " + dm.getY() + ", " + dm.getZ() + "), scale: " + dm.getScale()
+					info = "(" + dm.getX() + ", " + dm.getY() + ", " + dm.getZ() + "), scale: " + dm.getScale()
 							+ ", direction: " + dm.getDirection() + ", is_full_discovered: " + dm.isFullDicovered();
 				}
 				sender.sendMessage(COLOR_OK + "Map #" + id + " is " + type);
+				sender.sendMessage(COLOR_OK + vanillaInfo);
 				sender.sendMessage(COLOR_OK + info);
 				
 				return true;
