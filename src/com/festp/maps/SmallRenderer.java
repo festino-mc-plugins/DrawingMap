@@ -1,21 +1,20 @@
 package com.festp.maps;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapCursor.Type;
 import org.bukkit.map.MapCursorCollection;
+import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.util.Vector;
 
@@ -28,12 +27,14 @@ public class SmallRenderer extends AbstractRenderer {
 	static final int RENDER_DISTANCE_SQUARED = 128 * 128;
 	
 	final SmallMap map;
+	final MapRenderer vanillaRenderer;
 	
 	final Map<String, MapCursor> netherCursors = new HashMap<>();
 	
-	public SmallRenderer(SmallMap map) {
+	public SmallRenderer(SmallMap map, MapRenderer vanillaRenderer) {
 		super(map);
 		this.map = map;
+		this.vanillaRenderer = vanillaRenderer;
 	}
 
 	@Override
@@ -47,65 +48,8 @@ public class SmallRenderer extends AbstractRenderer {
 				return;
 		}
 		
-		int playerX = player.getLocation().getBlockX();
-		int playerZ = player.getLocation().getBlockZ();
+		updatePixels(view, canvas, player);
 		
-		int scale = map.getScale();
-		int width = 128 / scale;
-		int minX = map.getX();
-		int minZ = map.getZ();
-		BlockContainer lastColorBlock = new BlockContainer();
-		for (int x = 0; x < width; x++)
-		{
-			// top block pseudorender
-			PaletteUtils.getColor(view.getWorld(), minX + x, minZ - 1, lastColorBlock);
-			for (int z = 0; z < width; z++)
-			{
-				int realX = minX + x,
-					realZ = minZ + z;
-				int distX = playerX - realX,
-					distZ = playerZ - realZ;
-				if (distX * distX + distZ * distZ > RENDER_DISTANCE_SQUARED + 1)
-					continue;
-				// brighter block, darker under block
-				int lastY = lastColorBlock.getY();
-				byte color = PaletteUtils.getColor(view.getWorld(), realX, realZ, lastColorBlock);
-				
-				if (distX * distX + distZ * distZ > RENDER_DISTANCE_SQUARED)
-					continue;
-				
-				if (color == PaletteUtils.getColor(PaletteUtils.WATER))
-				{
-					// count water blocks
-					Block b = lastColorBlock.get();
-					int depth = 0;
-					while (b.getType() == Material.WATER && b.getY() > 0) {
-						depth++;
-						b = b.getRelative(BlockFace.DOWN);
-					}
-					if (depth < 3)
-						color += 1; // brighter
-					else if (depth > 6)
-						color -= 1; // darker
-					//some ununderstandable specific
-				}
-				else
-				{
-					int y = lastColorBlock.getY();
-					if (lastY < y)
-						color += 1; // brighter
-					else if (lastY > y)
-						color -= 1; // darker
-				}
-				
-				int pxX = x * scale;
-				int pxZ = z * scale;
-				for (int dx = 0; dx < scale; dx++)
-					for (int dz = 0; dz < scale; dz++)
-						canvas.setPixel(pxX + dx, pxZ + dz, color);
-			}
-		}
-
 		SmallMapRenderArgs args = new SmallMapRenderArgs(map, player, view.getWorld());
 		
 		// TODO move code to scheduler
@@ -128,14 +72,54 @@ public class SmallRenderer extends AbstractRenderer {
 				continue;
 			}
 			
-			renderNetherCursor(args, canvas, p);
+			updateNetherCursor(args, canvas, p);
 		}
 		if (!netherCursors.containsKey(player.getName())) {
 			// TODO remove original pointer
-			renderNetherCursor(args, canvas, player);
+			updateNetherCursor(args, canvas, player);
 		}
 		
 		updateCursors(canvas);
+	}
+	
+	private void updatePixels(MapView view, MapCanvas canvas, Player player) {
+		if (player.getWorld() != view.getWorld()) {
+			return;
+		}
+		
+		int scale = map.getScale();
+		int width = 128 / scale;
+		int minX = map.getX();
+		int minZ = map.getZ();
+		int realX = minX + width / 2,
+			realZ = minZ + width / 2;
+		int playerX = player.getLocation().getBlockX();
+		int playerZ = player.getLocation().getBlockZ();
+		int distX = playerX - realX,
+			distZ = playerZ - realZ;
+		if (distX * distX + distZ * distZ > RENDER_DISTANCE_SQUARED) {
+			return;
+		}
+		
+		vanillaRenderer.render(view, canvas, player);
+		byte[] colors = Arrays.copyOf(NmsWorldMapHelper.getColors(canvas), 0x4FFF);
+		int minMapX = minX - view.getCenterX() + 64;
+		int minMapZ = minZ - view.getCenterZ() + 64;
+		for (int z = 0; z < width; z++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				int mapX = minMapX + x,
+					mapZ = minMapZ + z;
+				byte color = colors[mapZ * 128 + mapX];
+				
+				int pxX = x * scale;
+				int pxZ = z * scale;
+				for (int dx = 0; dx < scale; dx++)
+					for (int dz = 0; dz < scale; dz++)
+						canvas.setPixel(pxX + dx, pxZ + dz, color);
+			}
+		}
 	}
 
 	// TODO united args boilerplate
@@ -183,7 +167,7 @@ public class SmallRenderer extends AbstractRenderer {
 		}
 	}
 
-	private void renderNetherCursor(SmallMapRenderArgs args, MapCanvas canvas, Player player) {
+	private void updateNetherCursor(SmallMapRenderArgs args, MapCanvas canvas, Player player) {
 		final int halfWidth = args.width / 2;
 		Vector cursorPlayer = args.coords.getMapCoord(
 				new Vector(args.xCenter, args.yCenter, args.zCenter),
@@ -241,14 +225,24 @@ public class SmallRenderer extends AbstractRenderer {
         MapCursorCollection vanillaCursors = NmsWorldMapHelper.getCursors(canvas.getMapView());
         for (int i = 0; i < vanillaCursors.size(); i++) {
         	MapCursor cursor = vanillaCursors.getCursor(i);
-        	System.out.println(canvas.getMapView().getId() + " " + cursor.getType() + " " + cursor.getX() + " " + cursor.getY());
         	// TODO precise player position
-        	int x = cursor.getX() * mapScale + startX - mapScale;
-        	int z = cursor.getY() * mapScale + startZ;
+        	int vanillaX = cursor.getX();
+        	int vanillaY = cursor.getY();
+        	Type cursorType = cursor.getType();
+        	if (!isPlayerCursor(cursorType)) {
+            	//System.out.println(canvas.getMapView().getId() + " " + cursor.getType() + " " + cursor.getX() + " " + cursor.getY());
+        		// move banners / green markers / etc to the center of a block
+        		if (vanillaX % 2 != 0) {
+        			vanillaX++;
+        		}
+        		if (vanillaY % 2 == 0) {
+        			vanillaY++;
+        		}
+        	}
+        	int x = vanillaX * mapScale + startX - mapScale;
+        	int z = vanillaY * mapScale + startZ;
         	if (x < -128 || 127 < x || z < -128 || 127 < z) {
-        		if (cursor.getType() == Type.WHITE_POINTER
-        				|| cursor.getType() == Type.WHITE_CIRCLE
-        				|| cursor.getType() == Type.SMALL_WHITE_CIRCLE) {
+        		if (isPlayerCursor(cursorType)) {
         			final int halfWidth = 128;
         			final int maxDistance = 5 * halfWidth;
         			if (x <= -maxDistance || maxDistance < x || z <= -maxDistance || maxDistance < z)
@@ -267,5 +261,11 @@ public class SmallRenderer extends AbstractRenderer {
         	cursor.setY((byte)z);
         	cursors.addCursor(cursor);
         }
+	}
+	
+	private static boolean isPlayerCursor(Type cursorType) {
+		return cursorType == Type.WHITE_POINTER
+				|| cursorType == Type.WHITE_CIRCLE
+				|| cursorType == Type.SMALL_WHITE_CIRCLE;
 	}
 }

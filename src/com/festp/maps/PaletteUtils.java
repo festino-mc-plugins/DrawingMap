@@ -3,7 +3,6 @@ package com.festp.maps;
 import org.bukkit.Axis;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Bisected;
@@ -51,36 +50,6 @@ public class PaletteUtils {
 			RED = Material.RED_WOOL,
 			BLACK = Material.BLACK_WOOL,
 			SPRUCE_BROWN = Material.SPRUCE_PLANKS;
-	
-	/** Ignores height difference (shadows)*/
-	public static byte getColor(World world, int x, int z, BlockContainer lastColorBlock)
-	{
-		Block b = world.getBlockAt(x, world.getMaxHeight(), z);
-		Block next = b.getRelative(BlockFace.DOWN);
-		while (next.getY() > 0 && UtilsType.isAir(next.getType())) {
-			b = next;
-			next = b.getRelative(BlockFace.DOWN);
-		}
-		
-		byte color = getColor(b);
-		
-		boolean transparent = false;
-		if (color == 0)
-			transparent = true;
-		
-		while (color >= 0 && color < SHADES_COUNT && b.getY() > 0)
-		{
-			b = b.getRelative(BlockFace.DOWN);
-			color = getColor(b);
-			if (color == 0)
-				transparent = true;
-		}
-		
-		lastColorBlock.set(b);
-		if (!transparent && color >= 0 && color < SHADES_COUNT)
-			return getColor(STONE);
-		return color;
-	}
 	
 	/** Emit WorldMap work in CraftMapRenderer */
 	public static byte getColor(Block b)

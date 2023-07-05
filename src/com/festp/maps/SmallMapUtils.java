@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.map.MapView.Scale;
 
@@ -57,14 +58,14 @@ public class SmallMapUtils {
 		initVanillaMap(view, l.getBlockX(), l.getBlockZ());
 		view.setTrackingPosition(true);
 		view.setUnlimitedTracking(true);
-		MapUtils.removeRenderers(view);
+		MapRenderer vanillaRenderer = MapUtils.removeRenderers(view);
 
 		int ratio = 128 / scale;
 		int startX = floorCoord(l.getBlockX(), ratio);
 		int startZ = floorCoord(l.getBlockZ(), ratio);
 		SmallMap newMap = new SmallMap(view.getId(), scale, startX, startZ);
-		SmallRenderer renderer = new SmallRenderer(newMap);
-		MapUtils.setRenderer(view, renderer);
+		SmallRenderer renderer = new SmallRenderer(newMap, vanillaRenderer);
+		MapUtils.addRenderer(view, renderer);
 		
 		MapFileManager.addMap(newMap);
 		

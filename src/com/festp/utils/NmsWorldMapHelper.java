@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapCursorCollection;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
@@ -46,11 +47,32 @@ public class NmsWorldMapHelper
 		return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 	}
 
+	public static byte[] getColors(MapCanvas canvas) {
+		try {
+			//canvas.buffer
+			Class<?> classCraftMapCanvas = getCraftbukkitClass("map.CraftMapCanvas");
+			Field fieldBuffer = classCraftMapCanvas.getDeclaredField("buffer");
+			fieldBuffer.setAccessible(true);
+			Object buffer = fieldBuffer.get(canvas);
+			return (byte[])buffer;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	/** use <b>data[y * 128 + x]</b> to get colors by x and y coordinates 
 	 * @return <b>null</b> if couldn't get pixels */
 	@SuppressWarnings("unchecked")
 	public static byte[] getColors(MapView mapView)
 	{
+		/* org.bukkit.craftbukkit.v1_18_R1.map.CraftMapCanvas
+		 * public byte getPixel(int x, int y);
+	     if (x < 0 || y < 0 || x >= 128 || y >= 128)
+	         return 0;
+	     byte[] data = this.buffer;
+	     return data[y * 128 + x]; */
 		try {
 			Field fieldCanvases = mapView.getClass().getDeclaredField("canvases");
 			fieldCanvases.setAccessible(true);
@@ -60,29 +82,16 @@ public class NmsWorldMapHelper
 				return null;
 			}
 
-			Class<?> classCraftMapCanvas = getCraftbukkitClass("map.CraftMapCanvas");
-			Field fieldBuffer = classCraftMapCanvas.getDeclaredField("buffer");
-			fieldBuffer.setAccessible(true);
-			byte[] pixels = null;
 			//Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>> canvases = (Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>>) preCanvases;
-			//for (Map<CraftPlayer, CraftMapCanvas> pair : canvases.values())
 			Map<MapRenderer, Map<Object, Object>> canvases = (Map<MapRenderer, Map<Object, Object>>) preCanvases;
+			//for (Map<CraftPlayer, CraftMapCanvas> pair : canvases.values())
 			for (Map<Object, Object> pair : canvases.values()) {
 				//for (CraftMapCanvas canvas : pair.values())
-				for (Object canvas : pair.values())
-				{
-					Object buffer = fieldBuffer.get(canvas);
-					pixels = (byte[])buffer;
-					break;
+				for (Object canvas : pair.values()) {
+					return getColors((MapCanvas) canvas);
 				}
 			}
-			return pixels;
-			/* org.bukkit.craftbukkit.v1_18_R1.map.CraftMapCanvas
-			 * public byte getPixel(int x, int y);
-		     if (x < 0 || y < 0 || x >= 128 || y >= 128)
-		         return 0;
-		     byte[] data = this.buffer;
-		     return data[y * 128 + x]; */
+			return null;
 		} catch (Exception e) {
 			Logger.severe("Error while get pixels from map #" + mapView.getId());
 			e.printStackTrace();

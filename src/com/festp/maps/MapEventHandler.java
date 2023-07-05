@@ -29,7 +29,8 @@ public class MapEventHandler implements Listener {
 	@EventHandler
 	public void onMapLoad(MapInitializeEvent event)
 	{
-		int id = event.getMap().getId();
+		MapView mapView = event.getMap();
+		int id = mapView.getId();
 		if (MapFileManager.isLoaded(id))
 			return;
 		
@@ -37,15 +38,15 @@ public class MapEventHandler implements Listener {
 		if (map == null)
 			return;
 
-		MapRenderer vanillaRenderer = MapUtils.removeRenderers(event.getMap());
+		MapRenderer vanillaRenderer = MapUtils.removeRenderers(mapView);
 		AbstractRenderer renderer = null;
 		if (map instanceof SmallMap) {
-			renderer = new SmallRenderer((SmallMap) map);
+			renderer = new SmallRenderer((SmallMap) map, vanillaRenderer);
 		} else if (map instanceof DrawingMap) {
 			renderer = new DrawingRenderer((DrawingMap) map, vanillaRenderer);
 		}
 		if (renderer != null) {
-			MapUtils.setRenderer(event.getMap(), renderer);
+			MapUtils.addRenderer(mapView, renderer);
 			BufferedImage image = MapFileManager.loadImage(id);
 			if (image != null)
 			{
@@ -87,7 +88,7 @@ public class MapEventHandler implements Listener {
 				
 				MapRenderer vanillaRenderer = MapUtils.removeRenderers(view);
 				DrawingRenderer renderer = new DrawingRenderer(newMap, vanillaRenderer);
-				MapUtils.setRenderer(view, renderer);
+				MapUtils.addRenderer(view, renderer);
 				MapFileManager.addMap(newMap);
 				
 				mapItem = MapUtils.getMap(view.getId());

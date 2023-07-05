@@ -41,7 +41,7 @@ public class MapUtils {
 		return vanillaRenderer;
 	}
 	
-	public static void setRenderer(MapView view, MapRenderer mapRenderer) {
+	public static void addRenderer(MapView view, MapRenderer mapRenderer) {
 		view.addRenderer(mapRenderer);
 	}
 	
