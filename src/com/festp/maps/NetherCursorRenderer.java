@@ -69,15 +69,9 @@ public class NetherCursorRenderer extends MapRenderer {
 			netherCursors.remove(playerInfo.playerName);
 			return;
 		}
-		boolean found = false;
-		for (ItemStack stack : p.getInventory().getContents()) {
-			if (NBTUtils.getMapId(stack) == mapInfo.id) {
-				found = true;
-				break;
-			}
-		}
-
-		if (!found) {
+		
+		boolean hasMap = MapUtils.hasMap(p, mapInfo.id);
+		if (!hasMap) {
 			netherCursors.remove(playerInfo.playerName);
 			return;
 		}
