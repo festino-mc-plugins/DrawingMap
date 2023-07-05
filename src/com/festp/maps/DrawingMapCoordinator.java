@@ -184,16 +184,21 @@ public class DrawingMapCoordinator {
 		dir = dir.subtract(renderDir.multiply(renderDot));
 		// s/w/n/e = 0/90/180/270 = down/left/up/right (down = vert, left = -hor)
 		double pseudoyaw = Math.toDegrees(Math.atan2(-dir.dot(horDir), dir.dot(vertDir)));
+		byte direction = yawToDirection(pseudoyaw);
+		return new MapCursor(x, y, direction, MapCursor.Type.WHITE_POINTER, true);
+	}
+	
+	public static byte yawToDirection(double yaw) {
 		// thanks for the yaw formula: https://gist.github.com/JorelAli/6e124cc4022d2d16cc373d486e6f254b
 		// instead of
 		/* byte dir = (byte) ((180 + yaw) / 360 * 16 - 12 - 1f/2); // -12 DOWN => east
 		 * if (dir < 0)
 		 *     dir = (byte) (16 + dir);*/
-		byte direction = (byte) (Math.floor((pseudoyaw / 22.5) + 0.5) % 16);
+		byte direction = (byte) (Math.floor((yaw / 22.5) + 0.5) % 16);
 		if (direction < 0) {
 			direction += 16;
 		}
-		return new MapCursor(x, y, direction, MapCursor.Type.WHITE_POINTER, true);
+		return direction;
 	}
 	
 	private char invert(char dir) {

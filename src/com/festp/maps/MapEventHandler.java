@@ -36,9 +36,8 @@ public class MapEventHandler implements Listener {
 			return;
 		
 		IMap map = initMainRenderer(mapView);
-		if (map == null || map instanceof SmallMap
-				&& mapView.getWorld().getEnvironment() == Environment.NORMAL) {
-			// TODO test vanilla maps
+		if (mapView.getWorld().getEnvironment() == Environment.NORMAL
+				&& (map == null || map instanceof SmallMap)) {
 			MapUtils.addRenderer(mapView, new NetherCursorRenderer(mapView));
 		}
 	}

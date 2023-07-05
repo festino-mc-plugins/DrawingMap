@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -123,5 +124,15 @@ public class MapUtils {
 		if (item == null || item.getType() != Material.FILLED_MAP)
 			return null;
 		return NBTUtils.getMapId(item);
+	}
+
+	public static boolean hasMap(Player p, int mapId) {
+		for (ItemStack is : p.getInventory().getContents()) {
+			Integer id = getMapId(is);
+			if (id != null && mapId == id) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
