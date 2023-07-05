@@ -1,26 +1,14 @@
 package com.festp.maps;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapCursor.Type;
 import org.bukkit.map.MapCursorCollection;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
-import org.bukkit.util.Vector;
-
-import com.festp.utils.NBTUtils;
 import com.festp.utils.NmsWorldMapHelper;
-import com.festp.utils.Vector3i;
 
 public class SmallRenderer extends AbstractRenderer {
 	
@@ -28,8 +16,6 @@ public class SmallRenderer extends AbstractRenderer {
 	
 	final SmallMap map;
 	final MapRenderer vanillaRenderer;
-	
-	final Map<String, MapCursor> netherCursors = new HashMap<>();
 	
 	public SmallRenderer(SmallMap map, MapRenderer vanillaRenderer) {
 		super(map);
@@ -49,35 +35,6 @@ public class SmallRenderer extends AbstractRenderer {
 		}
 		
 		updatePixels(view, canvas, player);
-		
-		SmallMapRenderArgs args = new SmallMapRenderArgs(map, player, view.getWorld());
-		
-		// TODO move code to scheduler
-		for (String playerName : netherCursors.keySet()) {
-			Player p = Bukkit.getPlayerExact(playerName);
-			if (p == null || !p.isOnline() || p.getWorld().getEnvironment() != Environment.NETHER) {
-				netherCursors.remove(playerName);
-				continue;
-			}
-			boolean found = false;
-			for (ItemStack stack : p.getInventory().getContents()) {
-				if (NBTUtils.getMapId(stack) == map.getId()) {
-					found = true;
-					break;
-				}
-			}
-
-			if (!found) {
-				netherCursors.remove(playerName);
-				continue;
-			}
-			
-			updateNetherCursor(args, canvas, p);
-		}
-		if (!netherCursors.containsKey(player.getName())) {
-			// TODO remove original pointer
-			updateNetherCursor(args, canvas, player);
-		}
 		
 		updateCursors(canvas);
 	}
@@ -121,91 +78,6 @@ public class SmallRenderer extends AbstractRenderer {
 			}
 		}
 	}
-
-	// TODO united args boilerplate
-	private class SmallMapRenderArgs
-	{
-		public final Location playerLoc;
-		public final int playerX;
-		public final int playerY;
-		public final int playerZ;
-
-		public final World world;
-		public final int xCenter;
-		public final int yCenter;
-		public final int zCenter;
-		public final Vector3i center;
-		public final int scale;
-		public final int width;
-		public final DrawingMapCoordinator coords;
-		
-		public final Vector3i mapPlayer;
-		public final int mapPlayerX;
-		public final int mapPlayerY;
-		
-		public SmallMapRenderArgs(SmallMap map, Player player, World world)
-		{
-			playerLoc = player.getLocation();
-			playerX = playerLoc.getBlockX();
-			playerY = playerLoc.getBlockY();
-			playerZ = playerLoc.getBlockZ();
-
-			scale = map.getScale();
-			width = map.getWidth();
-			xCenter = map.getX() + width / 2;
-			yCenter = playerY;
-			zCenter = map.getZ() + width / 2;
-			center = new Vector3i(xCenter, yCenter, zCenter);
-			this.world = world;
-			coords = new DrawingMapCoordinator(PlaneRotation3D.DOWN_NORTH, width);
-
-			mapPlayer = coords.getMapCoord(center, new Vector3i(playerX, playerY, playerZ));
-			final int halfWidth = width / 2;
-			mapPlayer.add(new Vector3i(halfWidth, halfWidth, 0));
-			mapPlayerX = mapPlayer.getX();
-			mapPlayerY = mapPlayer.getY();
-		}
-	}
-
-	private void updateNetherCursor(SmallMapRenderArgs args, MapCanvas canvas, Player player) {
-		final int halfWidth = args.width / 2;
-		Vector cursorPlayer = args.coords.getMapCoord(
-				new Vector(args.xCenter, args.yCenter, args.zCenter),
-				args.playerLoc.toVector().multiply(8));
-		double x = cursorPlayer.getX();
-		double y = cursorPlayer.getY();
-		if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
-			x = Math.round(x * 2 * args.scale);
-			y = Math.round(y * 2 * args.scale);
-			MapCursor cursor = args.coords.getCursor3D((byte) x, (byte) y, args.playerLoc.multiply(8), true);
-			cursor.setType(Type.RED_POINTER);
-			//cursor.setCaption(player.getDisplayName());
-			netherCursors.put(player.getName(), cursor);
-		}
-		else {
-			final int maxDistance = halfWidth + 2 * args.width;
-			double mapX = Math.round(x * 2 * args.scale);
-			double mapY = Math.round(y * 2 * args.scale);
-			mapX = clamp(mapX, -128, 127);
-			mapY = clamp(mapY, -128, 127);
-			MapCursor cursor = args.coords.getCursor3D((byte) mapX, (byte) mapY, args.playerLoc.multiply(8), true);
-			cursor.setDirection((byte)0);
-			//cursor.setCaption(player.getDisplayName());
-			if (-maxDistance <= x && x < maxDistance && -maxDistance <= y && y < maxDistance)
-				cursor.setType(Type.WHITE_CIRCLE);
-			else
-				cursor.setType(Type.SMALL_WHITE_CIRCLE);
-			netherCursors.put(player.getName(), cursor);
-		}
-	}
-	
-	private double clamp(double x, double a, double b) {
-		return Math.max(a, Math.min(b, x));
-	}
-	
-	private int clamp(int x, int a, int b) {
-		return Math.max(a, Math.min(b, x));
-	}
 	
 	private void updateCursors(MapCanvas canvas)
 	{
@@ -213,10 +85,6 @@ public class SmallRenderer extends AbstractRenderer {
         MapCursorCollection cursors = canvas.getCursors();
         while (cursors.size() > 0) {
             cursors.removeCursor(cursors.getCursor(0));
-        }
-
-        for (MapCursor cursor : this.netherCursors.values()) {
-        	cursors.addCursor(cursor);
         }
 
         int mapScale = map.getScale();
@@ -261,6 +129,10 @@ public class SmallRenderer extends AbstractRenderer {
         	cursor.setY((byte)z);
         	cursors.addCursor(cursor);
         }
+	}
+	
+	private int clamp(int x, int a, int b) {
+		return Math.max(a, Math.min(b, x));
 	}
 	
 	private static boolean isPlayerCursor(Type cursorType) {

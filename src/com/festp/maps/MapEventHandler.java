@@ -7,6 +7,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
+import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -34,9 +35,20 @@ public class MapEventHandler implements Listener {
 		if (MapFileManager.isLoaded(id))
 			return;
 		
+		IMap map = initMainRenderer(mapView);
+		if (map == null || map instanceof SmallMap
+				&& mapView.getWorld().getEnvironment() == Environment.NORMAL) {
+			// TODO test vanilla maps
+			MapUtils.addRenderer(mapView, new NetherCursorRenderer(mapView));
+		}
+	}
+	
+	private IMap initMainRenderer(MapView mapView) {
+		int id = mapView.getId();
 		IMap map = MapFileManager.load(id);
-		if (map == null)
-			return;
+		if (map == null) {
+			return null;
+		}
 
 		MapRenderer vanillaRenderer = MapUtils.removeRenderers(mapView);
 		AbstractRenderer renderer = null;
@@ -53,6 +65,7 @@ public class MapEventHandler implements Listener {
 				renderer.renderImage(image);
 			}
 		}
+		return map;
 	}
 
 	/** init new map */
