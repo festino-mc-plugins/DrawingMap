@@ -21,8 +21,9 @@ public class NmsWorldMapHelper
 {
 	private static final Class<?> MAP_ICON_CLASS = getNmsClass_MapIcon();
 	
-	/** Use for paths like "org.bukkit.craftbukkit.v1_19_R1". */
-	private static Class<?> getCraftbukkitClass(String relativePath)
+	/** Use for paths like "org.bukkit.craftbukkit.v1_19_R1".
+	 * @param relativePath is something like "map.CraftMapCanvas" for "org.bukkit.craftbukkit.v1_19_R1.map.CraftMapCanvas" class */
+	public static Class<?> getCraftbukkitClass(String relativePath)
 	{
 		String version = getVersionString();
 		try {

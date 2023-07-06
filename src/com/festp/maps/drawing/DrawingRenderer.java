@@ -27,7 +27,7 @@ public class DrawingRenderer extends AbstractRenderer {
 	private static final int GRID_SIZE = GRID_ROWS * GRID_ROWS;
 	private static final int MAX_ROW_PIXELS = 128;
 	private static final int MAX_PIXELS = MAX_ROW_PIXELS * MAX_ROW_PIXELS;
-	private static final int RENDER_QUOTA = (MAX_PIXELS / 20) * 9 / 10;
+	private static final int RENDER_QUOTA = (MAX_PIXELS / 20) * 6 / 10; // 60% in 1s
 
 	public final DrawingMap map;
 	public final MapRenderer vanillaRenderer;
