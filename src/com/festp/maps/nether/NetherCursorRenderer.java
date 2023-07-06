@@ -1,6 +1,8 @@
 package com.festp.maps.nether;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -30,6 +32,9 @@ public class NetherCursorRenderer extends MapRenderer {
 	final Map<String, MapCursor> netherCursors = new HashMap<>();
 	final MapInfo mapInfo;
 	
+	List<PixelCursor> pixelCursors = new ArrayList<>();
+	List<PixelCursor> nextPixelCursors = new ArrayList<>();
+	
 	public NetherCursorRenderer(MapView view) {
 		MapInfo info;
 		if (SmallMapUtils.isSmallMap(view.getId())) {
@@ -55,16 +60,25 @@ public class NetherCursorRenderer extends MapRenderer {
 			updateNetherCursor(mapInfo, playerInfo);
 		}
 		
+		// clear and draw
 		MapCursorCollection cursors = canvas.getCursors();
 		while (cursors.size() > 0) {
             cursors.removeCursor(cursors.getCursor(0));
         }
-		
         for (MapCursor cursor : this.netherCursors.values()) {
         	cursors.addCursor(cursor);
         }
 
-		
+		for (PixelCursor pc : pixelCursors) {
+			pc.removeFrom(canvas);
+		}
+		pixelCursors.clear();
+		List<PixelCursor> temp = pixelCursors;
+		pixelCursors = nextPixelCursors;
+		nextPixelCursors = temp;
+		for (PixelCursor pc : pixelCursors) {
+			pc.drawOn(canvas);
+		}
 	}
 
 	private void updateNetherCursor(MapInfo mapInfo, PlayerInfo playerInfo) {
@@ -89,29 +103,38 @@ public class NetherCursorRenderer extends MapRenderer {
 				playerInfo.playerLoc.toVector().multiply(8));
 		double x = cursorPlayer.getX();
 		double y = cursorPlayer.getY();
+		double mapX = Math.round(x * 2 * mapInfo.scale);
+		double mapY = Math.round(y * 2 * mapInfo.scale);
+		x = mapX * 0.5 / mapInfo.scale;
+		y = mapY * 0.5 / mapInfo.scale;
 		if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
-			x = Math.round(x * 2 * mapInfo.scale);
-			y = Math.round(y * 2 * mapInfo.scale);
-			MapCursor cursor = mapInfo.coords.getCursor3D((byte) x, (byte) y, playerInfo.playerLoc.multiply(8), true);
+			MapCursor cursor = mapInfo.coords.getCursor3D((byte) mapX, (byte) mapY, playerInfo.playerLoc.multiply(8), true);
 			cursor.setType(Type.RED_POINTER);
 			//cursor.setCaption(player.getDisplayName());
 			netherCursors.put(playerInfo.playerName, cursor);
 		}
 		else {
 			final int maxDistance = halfWidth + 2 * mapInfo.width;
-			double mapX = Math.round(x * 2 * mapInfo.scale);
-			double mapY = Math.round(y * 2 * mapInfo.scale);
+			final boolean isNear = -maxDistance <= x && x < maxDistance && -maxDistance <= y && y < maxDistance;
 			mapX = clamp(mapX, -128, 127);
 			mapY = clamp(mapY, -128, 127);
-			MapCursor cursor = mapInfo.coords.getCursor3D((byte) mapX, (byte) mapY, playerInfo.playerLoc.multiply(8), true);
-			cursor.setDirection((byte)0);
-			//cursor.setCaption(player.getDisplayName());
-			if (-maxDistance <= x && x < maxDistance && -maxDistance <= y && y < maxDistance)
-				cursor.setType(Type.WHITE_CIRCLE);
-			else
-				cursor.setType(Type.SMALL_WHITE_CIRCLE);
-			netherCursors.put(playerInfo.playerName, cursor);
+			drawCircleCursor(playerInfo.playerName, (byte) mapX, (byte) mapY, !isNear);
 		}
+	}
+	private void drawCircleCursor(String playerName, byte mapX, byte mapY, boolean isSmall) {
+		boolean useCursor = false;
+		if (useCursor) {
+			MapCursor cursor = new MapCursor(mapX, mapY, (byte)0, Type.WHITE_CIRCLE, true);
+			//cursor.setCaption(player.getDisplayName());
+			if (isSmall)
+				cursor.setType(Type.SMALL_WHITE_CIRCLE);
+			netherCursors.put(playerName, cursor);
+		}
+		else {
+			netherCursors.remove(playerName);
+			nextPixelCursors.add(new PixelCursor(mapX, mapY, isSmall));
+		}
+		
 	}
 
 	private double clamp(double x, double a, double b) {
@@ -151,7 +174,7 @@ public class NetherCursorRenderer extends MapRenderer {
 			id = view.getId();
 			world = view.getWorld();
 			int blocksPerPixel = getBlocksPerPixel(view.getScale());
-			scale = 1 / blocksPerPixel;
+			scale = 1.0 / blocksPerPixel;
 			width = 128 * blocksPerPixel;
 			xCenter = view.getCenterX();
 			zCenter = view.getCenterZ();
@@ -200,6 +223,68 @@ public class NetherCursorRenderer extends MapRenderer {
 			mapPlayer = mapInfo.coords.getMapCoord(mapInfo.center, new Vector3i(playerX, playerY, playerZ));
 			final int halfWidth = mapInfo.width / 2;
 			mapPlayer.add(new Vector3i(halfWidth, halfWidth, 0));
+		}
+	}
+	
+	private class PixelCursor {
+		private final byte[] SMALL_COLORS = {
+				0, 119, 119, 0,
+				119, 18, 17, 119,
+				119, 18, 18, 119,
+				0, 119, 119, 0,
+		};
+		private final byte[] BIG_COLORS = {
+				0, 119, 119, 119, 119, 0,
+				119, 16, 17, 17, 16, 119,
+				119, 17, 18, 18, 17, 119,
+				119, 17, 18, 18, 17, 119,
+				119, 16, 17, 17, 16, 119,
+				0, 119, 119, 119, 119, 0,
+		};
+		final boolean isSmall;
+		final int width;
+		final int minX;
+		final int minY;
+		
+		public PixelCursor(int mapX, int mapY, boolean isSmall) {
+			this.isSmall = isSmall;
+			int w = 6;
+			if (isSmall)
+				w = 4;
+			width = w;
+			minX = getCursorMinCorner(mapX);
+			minY = getCursorMinCorner(mapY);
+		}
+		
+		private int getCursorMinCorner(int c) {
+			c = (128 + c) / 2;
+			return Math.max(0, Math.min(128 - width, c - width / 2));
+		}
+		
+		public void drawOn(MapCanvas canvas) {
+			for (int dy = 0; dy < width; dy++) {
+				for (int dx = 0; dx < width; dx++) {
+					byte color;
+					if (isSmall)
+						color = SMALL_COLORS[width * dy + dx];
+					else
+						color = BIG_COLORS[width * dy + dx];
+					if (color == 0)
+						continue;
+					
+					int x = minX + dx;
+					int y = minY + dy;
+					canvas.setPixel(x, y, color);
+				}
+			}
+		}
+		
+		public void removeFrom(MapCanvas canvas) {
+			for (int y = minY; y < minY + width; y++) {
+				for (int x = minX; x < minX + width; x++) {
+					canvas.setPixel(x, y, canvas.getBasePixel(x, y));
+				}
+			}
 		}
 	}
 }
