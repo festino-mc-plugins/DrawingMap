@@ -13,13 +13,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapView;
 
-import com.festp.maps.DrawingMap;
 import com.festp.maps.IMap;
 import com.festp.maps.MapCraftHandler;
 import com.festp.maps.MapFileManager;
 import com.festp.maps.MapUtils;
-import com.festp.maps.ScanManager;
-import com.festp.maps.SmallMap;
+import com.festp.maps.drawing.DrawingMap;
+import com.festp.maps.drawing.ScanManager;
+import com.festp.maps.small.SmallMap;
 import com.festp.utils.Utils;
 
 public class CommandWorker implements CommandExecutor, TabCompleter

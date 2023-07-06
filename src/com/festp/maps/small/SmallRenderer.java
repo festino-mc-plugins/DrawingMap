@@ -1,4 +1,4 @@
-package com.festp.maps;
+package com.festp.maps.small;
 
 import java.util.Arrays;
 
@@ -11,6 +11,10 @@ import org.bukkit.map.MapCursor.Type;
 import org.bukkit.map.MapCursorCollection;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
+
+import com.festp.maps.AbstractRenderer;
+import com.festp.maps.DrawingMapCoordinator;
+import com.festp.maps.MapUtils;
 import com.festp.utils.NmsWorldMapHelper;
 
 public class SmallRenderer extends AbstractRenderer {

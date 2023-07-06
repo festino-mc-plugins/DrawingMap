@@ -8,7 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.festp.commands.CommandWorker;
 import com.festp.maps.MapCraftHandler;
 import com.festp.maps.MapEventHandler;
-import com.festp.maps.ScanManager;
+import com.festp.maps.drawing.ScanManager;
 import com.festp.utils.NBTUtils;
 
 public class Main extends JavaPlugin implements Listener

@@ -22,6 +22,14 @@ import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.map.MapView.Scale;
 
+import com.festp.maps.drawing.DrawingInfo;
+import com.festp.maps.drawing.DrawingMap;
+import com.festp.maps.drawing.DrawingMapUtils;
+import com.festp.maps.drawing.DrawingRenderer;
+import com.festp.maps.nether.NetherCursorRenderer;
+import com.festp.maps.small.SmallMap;
+import com.festp.maps.small.SmallMapUtils;
+import com.festp.maps.small.SmallRenderer;
 import com.festp.utils.Utils;
 
 public class MapEventHandler implements Listener {

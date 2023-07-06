@@ -7,7 +7,7 @@ import org.bukkit.util.Vector;
 import com.festp.utils.Vector3i;
 
 public class DrawingMapCoordinator {
-	final int width;
+	public final int width;
 	private final int halfWidth;
 	private final char renderDir;
 	private final char horDir;

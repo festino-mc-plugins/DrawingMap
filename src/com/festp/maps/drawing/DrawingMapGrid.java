@@ -1,4 +1,4 @@
-package com.festp.maps;
+package com.festp.maps.drawing;
 
 import java.util.Arrays;
 import java.util.Random;

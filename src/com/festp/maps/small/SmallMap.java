@@ -1,4 +1,6 @@
-package com.festp.maps;
+package com.festp.maps.small;
+
+import com.festp.maps.IMap;
 
 public class SmallMap implements IMap {
 	private int id;

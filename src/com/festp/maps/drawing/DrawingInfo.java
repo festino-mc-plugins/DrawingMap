@@ -1,7 +1,8 @@
-package com.festp.maps;
+package com.festp.maps.drawing;
 
 import org.bukkit.Location;
 
+import com.festp.maps.PlaneRotation3D;
 import com.festp.utils.Vector3i;
 
 public class DrawingInfo {

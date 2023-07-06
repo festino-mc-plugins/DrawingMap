@@ -1,4 +1,4 @@
-package com.festp.maps;
+package com.festp.maps.small;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -7,6 +7,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.map.MapView.Scale;
 
+import com.festp.maps.IMap;
+import com.festp.maps.MapFileManager;
+import com.festp.maps.MapUtils;
 import com.festp.utils.NBTUtils;
 import com.google.common.collect.Lists;
 

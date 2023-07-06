@@ -1,5 +1,8 @@
-package com.festp.maps;
+package com.festp.maps.drawing;
 
+import com.festp.maps.IMap;
+import com.festp.maps.MapFileManager;
+import com.festp.maps.PlaneRotation3D;
 import com.festp.utils.Vector3i;
 
 public class DrawingMap implements IMap {

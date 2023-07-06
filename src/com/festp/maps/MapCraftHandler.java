@@ -26,6 +26,11 @@ import com.festp.CraftManager;
 import com.festp.DelayedTask;
 import com.festp.Main;
 import com.festp.TaskList;
+import com.festp.maps.drawing.DrawingMap;
+import com.festp.maps.drawing.DrawingMapUtils;
+import com.festp.maps.drawing.DrawingRenderer;
+import com.festp.maps.small.SmallMap;
+import com.festp.maps.small.SmallMapUtils;
 import com.festp.utils.NBTUtils;
 import com.festp.utils.NmsWorldMapHelper;
 import com.festp.utils.Utils;
@@ -279,9 +284,6 @@ public class MapCraftHandler implements Listener {
 					MapRenderer renderer = view.getRenderers().get(i);
 					if (renderer instanceof DrawingRenderer) {
 						DrawingRenderer drawingRend = (DrawingRenderer) renderer;
-						if (drawingRend.saveTask != null) {
-							drawingRend.saveTask.terminate();
-						}
 						view.removeRenderer(drawingRend);
 						view.addRenderer(drawingRend.vanillaRenderer);
 					}

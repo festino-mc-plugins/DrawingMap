@@ -1,4 +1,4 @@
-package com.festp.maps;
+package com.festp.maps.nether;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapCursorCollection;
@@ -18,7 +17,12 @@ import org.bukkit.map.MapView.Scale;
 import org.bukkit.map.MapCursor.Type;
 import org.bukkit.util.Vector;
 
-import com.festp.utils.NBTUtils;
+import com.festp.maps.DrawingMapCoordinator;
+import com.festp.maps.MapFileManager;
+import com.festp.maps.MapUtils;
+import com.festp.maps.PlaneRotation3D;
+import com.festp.maps.small.SmallMap;
+import com.festp.maps.small.SmallMapUtils;
 import com.festp.utils.Vector3i;
 
 public class NetherCursorRenderer extends MapRenderer {

@@ -11,6 +11,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 
+import com.festp.maps.drawing.DrawingMapUtils;
+import com.festp.maps.small.SmallMap;
+import com.festp.maps.small.SmallMapUtils;
 import com.festp.utils.NBTUtils;
 import com.festp.utils.UtilsVersion;
 import com.google.common.collect.Lists;

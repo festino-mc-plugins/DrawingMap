@@ -1,4 +1,4 @@
-package com.festp.maps;
+package com.festp.maps.drawing;
 
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,7 +10,12 @@ import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.util.Vector;
 
+import com.festp.maps.AbstractRenderer;
+import com.festp.maps.DrawingMapCoordinator;
+import com.festp.maps.MapFileManager;
+import com.festp.maps.MapUtils;
 import com.festp.maps.PaletteUtils;
+import com.festp.maps.PlaneRotation3D;
 import com.festp.utils.Vector3i;
 
 public class DrawingRenderer extends AbstractRenderer {

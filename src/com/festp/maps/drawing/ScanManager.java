@@ -1,4 +1,4 @@
-package com.festp.maps;
+package com.festp.maps.drawing;
 
 import java.util.HashSet;
 
@@ -6,6 +6,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import com.festp.maps.IMap;
+import com.festp.maps.MapFileManager;
+import com.festp.maps.MapUtils;
 
 public class ScanManager
 {

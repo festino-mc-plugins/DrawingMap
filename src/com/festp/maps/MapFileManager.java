@@ -18,6 +18,9 @@ import org.bukkit.map.MapPalette;
 
 import com.festp.Logger;
 import com.festp.Main;
+import com.festp.maps.drawing.DrawingInfo;
+import com.festp.maps.drawing.DrawingMap;
+import com.festp.maps.small.SmallMap;
 
 public class MapFileManager {
 	private static final String DIR = Main.getPath() + Main.mapsdir + System.getProperty("file.separator");
@@ -231,10 +234,10 @@ public class MapFileManager {
 	
 	public static void saveImage(int id, BufferedImage image)
 	{
-		File image_file = new File(DIR + id + "." + IMG_FORMAT);
+		File imageFile = new File(DIR + id + "." + IMG_FORMAT);
 		
 		try {
-			ImageIO.write(image, IMG_FORMAT, image_file);
+			ImageIO.write(image, IMG_FORMAT, imageFile);
 		} catch (IOException e) {
 			Logger.severe("Error while saving image '" + id + "." + IMG_FORMAT +"'.");
 		}
@@ -242,6 +245,9 @@ public class MapFileManager {
 	
 	@SuppressWarnings("deprecation")
 	public static void saveMapCanvas(IMap map, MapCanvas canvas) {
+		if (load(map.getId()) == null)
+			return;
+		
 		BufferedImage image = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB_PRE);
 		
 		int errorCount = 0;

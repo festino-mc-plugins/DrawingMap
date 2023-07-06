@@ -1,7 +1,10 @@
-package com.festp.maps;
+package com.festp.maps.drawing;
 
 import org.bukkit.inventory.ItemStack;
 
+import com.festp.maps.IMap;
+import com.festp.maps.MapFileManager;
+import com.festp.maps.MapUtils;
 import com.festp.utils.NBTUtils;
 
 public class DrawingMapUtils {

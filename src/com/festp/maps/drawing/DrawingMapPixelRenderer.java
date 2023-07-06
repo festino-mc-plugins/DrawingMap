@@ -1,9 +1,11 @@
-package com.festp.maps;
+package com.festp.maps.drawing;
 
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.map.MapCanvas;
 
+import com.festp.maps.DrawingMapCoordinator;
+import com.festp.maps.PaletteUtils;
 import com.festp.utils.Vector3i;
 
 public class DrawingMapPixelRenderer {
