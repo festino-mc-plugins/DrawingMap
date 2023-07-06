@@ -32,12 +32,14 @@ public class MapUtils {
 		return -1;
 	}
 	
-	/** @return last removed renderer */
+	/** @return first removed renderer */
 	public static MapRenderer removeRenderers(MapView view) {
 		MapRenderer vanillaRenderer = null;
 		for (MapRenderer m : view.getRenderers()) {
 			view.removeRenderer(m);
-			vanillaRenderer = m;
+			if (vanillaRenderer == null) {
+				vanillaRenderer = m;
+			}
 		}
 		return vanillaRenderer;
 	}

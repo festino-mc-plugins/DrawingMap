@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -25,8 +26,47 @@ import com.festp.utils.Utils;
 
 public class MapEventHandler implements Listener {
 
-	// TODO add reload persistence
-	/** load last session map canvas */
+	/** Init new map */
+	@EventHandler
+	public void onPlayerInteractEvent(PlayerInteractEvent event)
+	{
+		if (event.useInteractedBlock() == Result.DEFAULT)
+			return;
+		if (event.useItemInHand() == Result.DENY)
+			return;
+		
+		if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+
+		if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType().isInteractable())
+			return;
+
+		if (!event.hasItem())
+			return;
+		
+		ItemStack item = event.getItem();
+		if (item.getType() == Material.MAP) {
+			MapView newView = initMap(event);
+			if (newView != null) {
+				event.setCancelled(true);
+				event.setUseInteractedBlock(Result.DENY);
+				// onMapLoad was called before
+				initRenderers(newView);
+			}
+		}
+		if (item.getType() == Material.FILLED_MAP) {
+			if (event.getHand() == EquipmentSlot.OFF_HAND)
+				return;
+			IMap newMap = reinitMap(item, event.getPlayer().getLocation());
+			if (newMap != null) {
+				event.setCancelled(true);
+				event.setUseInteractedBlock(Result.DENY);
+			}
+		}
+	}
+
+	// TODO add /reload persistence
+	/** Set up renderers and load last session map canvas */
 	@EventHandler
 	public void onMapLoad(MapInitializeEvent event)
 	{
@@ -35,11 +75,12 @@ public class MapEventHandler implements Listener {
 		if (MapFileManager.isLoaded(id))
 			return;
 		
+		initRenderers(mapView);
+	}
+	
+	private void initRenderers(MapView mapView) {
 		IMap map = initMainRenderer(mapView);
-		if (mapView.getWorld().getEnvironment() == Environment.NORMAL
-				&& (map == null || map instanceof SmallMap)) {
-			MapUtils.addRenderer(mapView, new NetherCursorRenderer(mapView));
-		}
+		initNetherCursorRenderer(mapView, map);
 	}
 	
 	private IMap initMainRenderer(MapView mapView) {
@@ -66,75 +107,63 @@ public class MapEventHandler implements Listener {
 		}
 		return map;
 	}
-
-	/** init new map */
-	@EventHandler
-	public void onPlayerInitMap(PlayerInteractEvent event)
-	{
-		if (event.useInteractedBlock() == Result.DEFAULT)
+	
+	private void initNetherCursorRenderer(MapView mapView, IMap map) {
+		// TODO use configuration to enable nether cursors
+		if (mapView.getWorld().getEnvironment() != Environment.NORMAL)
 			return;
-		if (event.useItemInHand() == Result.DENY)
+		if (!mapView.isTrackingPosition())
 			return;
-		
-		if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
+		if (map != null && !(map instanceof SmallMap))
 			return;
-
-		if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType().isInteractable())
-			return;
-
-		if (!event.hasItem())
-			return;
-		
+		MapUtils.addRenderer(mapView, new NetherCursorRenderer(mapView));
+	}
+	
+	private MapView initMap(PlayerInteractEvent event) {
+		MapView res = null;
 		ItemStack item = event.getItem();
 		Player player = event.getPlayer();
-		if (item.getType() == Material.MAP) {
-			ItemStack mapItem;
-			if (SmallMapUtils.isSmallMapByNbt(item)) {
-				int scale = SmallMapUtils.getScale(item);
-				SmallMap map = SmallMapUtils.genSmallMap(player.getLocation(), scale);
-				mapItem = MapUtils.getMap(map.getId());
-			} else if (DrawingMapUtils.isDrawingMapByNbt(item)) {
-				MapView view = Bukkit.createMap(event.getPlayer().getWorld());
-				view.setScale(Scale.FARTHEST);
-				DrawingMap newMap = new DrawingMap(view.getId(), DrawingInfo.buildFrom(player.getLocation()));
-				
-				MapRenderer vanillaRenderer = MapUtils.removeRenderers(view);
-				DrawingRenderer renderer = new DrawingRenderer(newMap, vanillaRenderer);
-				MapUtils.addRenderer(view, renderer);
-				MapFileManager.addMap(newMap);
-				
-				mapItem = MapUtils.getMap(view.getId());
-			} else {
-				return;
-			}
-
-			player.getWorld().playSound(player, Sound.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, SoundCategory.PLAYERS, 1, 1);
-			event.setCancelled(true);
-			event.setUseInteractedBlock(Result.DENY);
-			
-			if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
-				item.setAmount(item.getAmount() - 1);
-			else
-				if (player.getInventory().firstEmpty() < 0)
-					return;
-			
-			Utils.giveOrDrop(player, mapItem);
+		ItemStack mapItem;
+		if (SmallMapUtils.isSmallMapByNbt(item)) {
+			int scale = SmallMapUtils.getScale(item);
+			MapView view = SmallMapUtils.genSmallMap(player.getLocation(), scale);
+			mapItem = MapUtils.getMap(view.getId());
+			res = view;
+		} else if (DrawingMapUtils.isDrawingMapByNbt(item)) {
+			MapView view = Bukkit.createMap(player.getWorld());
+			view.setScale(Scale.FARTHEST);
+			DrawingMap map = new DrawingMap(view.getId(), DrawingInfo.buildFrom(player.getLocation()));
+			MapFileManager.addMap(map);
+			mapItem = MapUtils.getMap(view.getId());
+			res = view;
+		} else {
+			return null;
 		}
-		if (item.getType() == Material.FILLED_MAP) {
-			if (!DrawingMapUtils.isDrawingMap(item))
-				return;
-			if (event.getHand() == EquipmentSlot.OFF_HAND)
-				return;
-			
-			DrawingMap map = (DrawingMap) MapFileManager.load(MapUtils.getMapId(item));
-			if (map == null)
-				return;
 
-			event.setCancelled(true);
-			map.setInfo(DrawingInfo.buildFrom(player.getLocation()));
-			MapUtils.getView(map).setWorld(player.getWorld());;
-			map.needReset = true;
-			MapFileManager.save(map);
-		}
+		player.getWorld().playSound(player, Sound.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, SoundCategory.PLAYERS, 1, 1);
+		
+		if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
+			item.setAmount(item.getAmount() - 1);
+		else
+			if (player.getInventory().firstEmpty() < 0)
+				return res;
+		
+		Utils.giveOrDrop(player, mapItem);
+		return res;
+	}
+	
+	private IMap reinitMap(ItemStack item, Location newLoc) {
+		if (!DrawingMapUtils.isDrawingMap(item))
+			return null;
+		
+		DrawingMap map = (DrawingMap) MapFileManager.load(MapUtils.getMapId(item));
+		if (map == null)
+			return null;
+
+		map.setInfo(DrawingInfo.buildFrom(newLoc));
+		MapUtils.getView(map).setWorld(newLoc.getWorld());;
+		map.needReset = true;
+		MapFileManager.save(map);
+		return map;
 	}
 }

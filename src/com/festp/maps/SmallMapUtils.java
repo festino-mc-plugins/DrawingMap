@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.map.MapView.Scale;
 
@@ -27,8 +26,8 @@ public class SmallMapUtils {
 		{
 			MapView view = MapUtils.getView(map);
 			Location loc = new Location(view.getWorld(), map.getX(), 0, map.getZ());
-			SmallMap newMap = genSmallMap(loc, map.getScale() / 2);
-			return MapUtils.getMap(newMap.getId(), false);
+			MapView newView = genSmallMap(loc, map.getScale() / 2);
+			return MapUtils.getMap(newView.getId(), false);
 		}
 		else
 		{
@@ -52,24 +51,21 @@ public class SmallMapUtils {
 	}
 	
 	/** create new map and attach renderer*/
-	public static SmallMap genSmallMap(Location l, int scale)
+	public static MapView genSmallMap(Location l, int scale)
 	{
 		MapView view = Bukkit.createMap(l.getWorld());
 		initVanillaMap(view, l.getBlockX(), l.getBlockZ());
 		view.setTrackingPosition(true);
 		view.setUnlimitedTracking(true);
-		MapRenderer vanillaRenderer = MapUtils.removeRenderers(view);
 
 		int ratio = 128 / scale;
 		int startX = floorCoord(l.getBlockX(), ratio);
 		int startZ = floorCoord(l.getBlockZ(), ratio);
 		SmallMap newMap = new SmallMap(view.getId(), scale, startX, startZ);
-		SmallRenderer renderer = new SmallRenderer(newMap, vanillaRenderer);
-		MapUtils.addRenderer(view, renderer);
 		
 		MapFileManager.addMap(newMap);
 		
-		return newMap;
+		return view;
 	}
 	
 	private static void initVanillaMap(MapView view, int x, int z) {

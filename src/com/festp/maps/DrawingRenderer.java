@@ -38,7 +38,7 @@ public class DrawingRenderer extends AbstractRenderer {
 	public void renderSpecific(MapView view, MapCanvas canvas, Player player) {
 		if (map.needReset) {
 			grids = null;
-			byte initColor = PaletteUtils.getColor(PaletteUtils.TRANSPARENT);
+			byte initColor = PaletteUtils.getColor(null);
 			for (int x = 0; x < 128; x++)
 				for (int y = 0; y < 128; y++)
 					canvas.setPixel(x, y, initColor);
