@@ -55,7 +55,7 @@ public class SmallRenderer extends AbstractRenderer {
 			realZ = minZ + width / 2;
 		int playerX = player.getLocation().getBlockX();
 		int playerZ = player.getLocation().getBlockZ();
-		int distX = playerX - realX,
+		long distX = playerX - realX,
 			distZ = playerZ - realZ;
 		if (distX * distX + distZ * distZ > RENDER_DISTANCE_SQUARED) {
 			return;
