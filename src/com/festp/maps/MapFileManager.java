@@ -54,7 +54,6 @@ public class MapFileManager {
 					Integer start_z = (Integer) ymlFormat.get("start_z");
 					Integer scale = (Integer) ymlFormat.get("scale");
 					map = new SmallMap(id, scale, start_x, start_z);
-					maps.add(map);
 				}
 				Object objDrawing = ymlFormat.get("position");
 				if (objDrawing != null) {
@@ -87,7 +86,6 @@ public class MapFileManager {
 						// else info already created empty array
 					}
 					map = new DrawingMap(id, info);
-					maps.add(map);
 				}
 			} catch (Exception e) {
 				Logger.severe("[WARN] Couldn't load map #" + id + "! (" + e.getClass().getSimpleName() + " : " + e.getMessage() + ")");
@@ -95,6 +93,9 @@ public class MapFileManager {
 			}
 		}
 		
+		if (map != null) {
+			maps.add(map);
+		}
 		return map;
 	}
 
