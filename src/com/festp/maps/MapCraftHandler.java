@@ -25,6 +25,7 @@ import org.bukkit.map.MapView.Scale;
 
 import com.festp.CraftManager;
 import com.festp.DelayedTask;
+import com.festp.Logger;
 import com.festp.Main;
 import com.festp.TaskList;
 import com.festp.maps.drawing.DrawingMap;
@@ -132,15 +133,19 @@ public class MapCraftHandler implements Listener {
 		IMap m = MapFileManager.load(id);
 
 		int maxId = MapUtils.getMaxId();
+		boolean wasCrafted = false;
 		if (m instanceof SmallMap) {
-			onSmallCartography(event, (SmallMap) m);
+			wasCrafted = onSmallCartography(event, (SmallMap) m);
 		} else if (m instanceof DrawingMap) {
-			onDrawingCartography(event, (DrawingMap) m);
+			wasCrafted = onDrawingCartography(event, (DrawingMap) m);
 		} else if (m != null) {
 			event.setCancelled(true);
 			inv.setItem(2, null);
 			((Player)event.getWhoClicked()).updateInventory();
 			return;
+		}
+		if (wasCrafted) {
+			MapUtils.playCraftSound(inv.getLocation().getBlock());
 		}
 
 		// init vanilla (nether cursors) and IMaps
@@ -160,7 +165,7 @@ public class MapCraftHandler implements Listener {
 		}
 	}
 	
-	public void onSmallCartography(InventoryClickEvent event, SmallMap map) {
+	public boolean onSmallCartography(InventoryClickEvent event, SmallMap map) {
 		CartographyInventory inv = (CartographyInventory)event.getView().getTopInventory();
 		ItemStack item0 = inv.getItem(0);
 		ItemStack item1 = inv.getItem(1);
@@ -221,6 +226,8 @@ public class MapCraftHandler implements Listener {
 				view.setLocked(true);
 				NmsWorldMapHelper.copyPixels(map, view);
 				mapItem = MapUtils.getMap(view.getId());
+			} else {
+				return false;
 			}
 
 			event.setCancelled(true);
@@ -236,11 +243,13 @@ public class MapCraftHandler implements Listener {
 				event.getWhoClicked().getInventory().setItem(event.getHotbarButton(), mapItem);
 			else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY)
 				event.getWhoClicked().getInventory().setItem(MapUtils.getEmptySlot(event.getWhoClicked().getInventory()), mapItem);
+			return true;
 		}
+		return false;
 	}
 	
 	// TODO refactor to avoid code repeating
-	public void onDrawingCartography(InventoryClickEvent event, DrawingMap map) {
+	public boolean onDrawingCartography(InventoryClickEvent event, DrawingMap map) {
 		CartographyInventory inv = (CartographyInventory)event.getView().getTopInventory();
 		ItemStack item0 = inv.getItem(0);
 		ItemStack item1 = inv.getItem(1);
@@ -287,8 +296,8 @@ public class MapCraftHandler implements Listener {
 			ItemStack mapItem = inv.getItem(2);
 			if (inv.contains(Material.PAPER)) { // extending
 				mapItem = null;
-				System.out.println("UpDaTe");
-				return;
+				Logger.warning("PlAyEr HaDnT rEciEvE An InVeNtOrY UpDaTe ?");
+				return false;
 			} else if (inv.contains(Material.GLASS_PANE)) { // locking
 				MapView view = MapUtils.getView(map);
 				NmsWorldMapHelper.copyPixels(map, view);
@@ -307,8 +316,7 @@ public class MapCraftHandler implements Listener {
 				}
 				mapItem = MapUtils.getMap(view.getId());
 			} else {
-				mapItem = null;
-				return;
+				return false;
 			}
 
 			item0.setAmount(item0.getAmount() - 1);
@@ -323,7 +331,9 @@ public class MapCraftHandler implements Listener {
 				event.getWhoClicked().getInventory().setItem(event.getHotbarButton(), mapItem);
 			else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY)
 				event.getWhoClicked().getInventory().setItem(MapUtils.getEmptySlot(event.getWhoClicked().getInventory()), mapItem);
+			return true;
 		}
+		return false;
 	}
 
 	public static ItemStack getScaleMap(int scale)

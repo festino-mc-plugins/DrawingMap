@@ -156,7 +156,7 @@ public class MapEventHandler implements Listener {
 			return null;
 		}
 
-		player.getWorld().playSound(player, Sound.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, SoundCategory.PLAYERS, 1, 1);
+		MapUtils.playInitSound(player);
 		
 		if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
 			item.setAmount(item.getAmount() - 1);

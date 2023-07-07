@@ -4,6 +4,10 @@ import java.util.Arrays;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
+import org.bukkit.block.Block;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -139,5 +143,12 @@ public class MapUtils {
 			}
 		}
 		return false;
+	}
+	
+	public static void playInitSound(Player player) {
+		player.getWorld().playSound(player, Sound.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, SoundCategory.PLAYERS, 1, 1);
+	}
+	public static void playCraftSound(Block block) {
+		block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), Sound.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, SoundCategory.BLOCKS, 1, 1);
 	}
 }
