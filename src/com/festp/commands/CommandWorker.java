@@ -136,7 +136,9 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 				String vanillaInfo = "";
 				String info = "";
 				MapView mp = Bukkit.getMap(id);
-				vanillaInfo = mp.getWorld().getName() + " "+ "(" + mp.getCenterX() + ", " + mp.getCenterZ() + "), scale: " + mp.getScale() + ", is_locked: " + mp.isLocked();
+				vanillaInfo = "center: " + mp.getWorld().getName() + " "+ "(" + mp.getCenterX() + ", " + mp.getCenterZ() + ")"
+						+ ", scale: "+ mp.getScale() + ", isLocked: " + mp.isLocked()
+						+ ", tracking: { isEnabled: " + mp.isTrackingPosition() + ", isUnlimited: "+ mp.isUnlimitedTracking() + "}";
 				IMap map = MapFileManager.load(id);
 				if (map == null) {
 					type = "vanilla";
@@ -148,7 +150,7 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 					type = "drawing";
 					DrawingMap dm = (DrawingMap) map;
 					info = "(" + dm.getX() + ", " + dm.getY() + ", " + dm.getZ() + "), scale: " + dm.getScale()
-							+ ", direction: " + dm.getDirection() + ", is_full_discovered: " + dm.isFullDiscovered();
+							+ ", direction: " + dm.getDirection() + ", isFullDiscovered: " + dm.isFullDiscovered();
 				}
 				sender.sendMessage(COLOR_OK + "Map #" + id + " is " + type);
 				sender.sendMessage(COLOR_OK + vanillaInfo);
