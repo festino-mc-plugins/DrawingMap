@@ -53,8 +53,8 @@ public class MapUtils {
 	
 	public static MapView genNewView(IMap map)
 	{
-		MapView old_view = Bukkit.getMap(map.getId());
-		MapView view = Bukkit.createMap(old_view.getWorld());
+		MapView oldView = Bukkit.getMap(map.getId());
+		MapView view = Bukkit.createMap(oldView.getWorld());
 		return view;
 	}
 	
