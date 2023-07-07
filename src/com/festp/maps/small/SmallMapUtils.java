@@ -75,6 +75,7 @@ public class SmallMapUtils {
 		view.setCenterX(floorCoord(x, 128) + 64);
 		view.setCenterZ(floorCoord(z, 128) + 64);
 		view.setScale(Scale.CLOSEST); // 1:1
+		view.setTrackingPosition(true);
 	}
 	
 	public static boolean isSmallMap(int id)
