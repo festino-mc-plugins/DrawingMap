@@ -54,7 +54,6 @@ public class NBTUtils
 		meta.setDisplayName(NAME_PLACEHOLDER);
 		item.setItemMeta(meta);
 		String ymlStr = getYml(item);
-		System.out.println(ymlStr);
 		// '{"extra":[{"text":"abcde123450"}],"text":""}'
 		ymlStr = ymlStr.replace("{\"text\":\"" + NAME_PLACEHOLDER + "\"}", nbt);
 		return fromYml(ymlStr);
@@ -69,10 +68,12 @@ public class NBTUtils
 		meta.setLore(Arrays.asList(loreTemp));
 		item.setItemMeta(meta);
 		String ymlStr = getYml(item);
-		//System.out.println(ymlStr);
 		for (int i = 0; i < loreTemp.length; i++) {
 			// '{"extra":[{"text":"abcde123450"}],"text":""}'
-			ymlStr = ymlStr.replace("{\"text\":\"" + LORE_PLACEHOLDER + i + "\"}", nbt[i]);
+			if (nbt[i].length() == 0)
+				ymlStr = ymlStr.replace(LORE_PLACEHOLDER + i, nbt[i]);
+			else
+				ymlStr = ymlStr.replace("{\"text\":\"" + LORE_PLACEHOLDER + i + "\"}", nbt[i]);
 		}
 		return fromYml(ymlStr);
 	}
