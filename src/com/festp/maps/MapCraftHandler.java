@@ -177,7 +177,7 @@ public class MapCraftHandler implements Listener {
 			@Override
 			public void run() {
 				ItemStack preMap = MapUtils.getMap(id, true);
-				if (inv.contains(Material.PAPER) && map.getScale() / 2 > 1) {
+				if (inv.contains(Material.PAPER) && map.getScale() / 2 >= 1) {
 					preMap = SmallMapUtils.getPreExtendedMap(id);
 				}
 				else if (inv.contains(Material.GLASS_PANE)) {

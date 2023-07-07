@@ -40,17 +40,15 @@ public class SmallMapUtils {
 	}
 	public static ItemStack getMap(int id, boolean scaleName) {
 		ItemStack item = MapUtils.getVanillaMap(id);
-		ItemMeta meta = item.getItemMeta();
-		
 		SmallMap map = (SmallMap) MapFileManager.load(id);
-		String[] lore = new String[] { "", "{\"translate\":\"filled_map.scale\", \"with\":[\"" + 1.0 / map.getScale() + "\"]}"}; // Scaling at 1:%s
 		
-		item.setItemMeta(meta);
-		item = NBTUtils.setLore(item, lore);
 		if (scaleName) {
 			String name = "{\"translate\":\"item.minecraft.filled_map\"},{\"text\":\" (" + map.getScale() + ":1)\"}";
 			item = NBTUtils.setDisplayName(item, name);
 		}
+		String[] lore = new String[] { "", "{\"translate\":\"filled_map.scale\", \"with\":[\"" + 1.0 / map.getScale() + "\"]}"}; // Scaling at 1:%s
+		item = NBTUtils.setLore(item, lore);
+		
 		return item;
 	}
 	public static ItemStack getPreExtendedMap(int id)
@@ -60,6 +58,8 @@ public class SmallMapUtils {
 		int scale = map.getScale() / 2;
 		String name = "{\"translate\":\"item.minecraft.filled_map\"},{\"text\":\" (" + scale + ":1)\"}";
 		String[] lore = new String[] { "", "{\"translate\":\"filled_map.scale\", \"with\":[\"" + 1.0 / scale + "\"]}"}; // Scaling at 1:%s
+		if (scale == 1) 
+			lore = new String[] { "", "{\"text\":\"Vanilla\"}"};
 		preMap = NBTUtils.setDisplayName(preMap, name);
 		preMap = NBTUtils.setLore(preMap, lore);
 		
