@@ -32,8 +32,8 @@ public class NetherCursorRenderer extends MapRenderer {
 	final Map<String, MapCursor> netherCursors = new HashMap<>();
 	final MapInfo mapInfo;
 	
-	List<PixelCursor> pixelCursors = new ArrayList<>();
-	List<PixelCursor> nextPixelCursors = new ArrayList<>();
+	List<NetherPixelCursor> pixelCursors = new ArrayList<>();
+	List<NetherPixelCursor> nextPixelCursors = new ArrayList<>();
 	
 	public NetherCursorRenderer(MapView view) {
 		MapInfo info;
@@ -69,14 +69,14 @@ public class NetherCursorRenderer extends MapRenderer {
         	cursors.addCursor(cursor);
         }
 
-		for (PixelCursor pc : pixelCursors) {
+		for (NetherPixelCursor pc : pixelCursors) {
 			pc.removeFrom(canvas);
 		}
 		pixelCursors.clear();
-		List<PixelCursor> temp = pixelCursors;
+		List<NetherPixelCursor> temp = pixelCursors;
 		pixelCursors = nextPixelCursors;
 		nextPixelCursors = temp;
-		for (PixelCursor pc : pixelCursors) {
+		for (NetherPixelCursor pc : pixelCursors) {
 			pc.drawOn(canvas);
 		}
 	}
@@ -132,7 +132,7 @@ public class NetherCursorRenderer extends MapRenderer {
 		}
 		else {
 			netherCursors.remove(playerName);
-			nextPixelCursors.add(new PixelCursor(mapX, mapY, isSmall));
+			nextPixelCursors.add(new NetherPixelCursor(mapX, mapY, isSmall));
 		}
 		
 	}
@@ -223,68 +223,6 @@ public class NetherCursorRenderer extends MapRenderer {
 			mapPlayer = mapInfo.coords.getMapCoord(mapInfo.center, new Vector3i(playerX, playerY, playerZ));
 			final int halfWidth = mapInfo.width / 2;
 			mapPlayer.add(new Vector3i(halfWidth, halfWidth, 0));
-		}
-	}
-	
-	private class PixelCursor {
-		private final byte[] SMALL_COLORS = {
-				0, 119, 119, 0,
-				119, 18, 17, 119,
-				119, 18, 18, 119,
-				0, 119, 119, 0,
-		};
-		private final byte[] BIG_COLORS = {
-				0, 119, 119, 119, 119, 0,
-				119, 16, 17, 17, 16, 119,
-				119, 17, 18, 18, 17, 119,
-				119, 17, 18, 18, 17, 119,
-				119, 16, 17, 17, 16, 119,
-				0, 119, 119, 119, 119, 0,
-		};
-		final boolean isSmall;
-		final int width;
-		final int minX;
-		final int minY;
-		
-		public PixelCursor(int mapX, int mapY, boolean isSmall) {
-			this.isSmall = isSmall;
-			int w = 6;
-			if (isSmall)
-				w = 4;
-			width = w;
-			minX = getCursorMinCorner(mapX);
-			minY = getCursorMinCorner(mapY);
-		}
-		
-		private int getCursorMinCorner(int c) {
-			c = (128 + c) / 2;
-			return Math.max(0, Math.min(128 - width, c - width / 2));
-		}
-		
-		public void drawOn(MapCanvas canvas) {
-			for (int dy = 0; dy < width; dy++) {
-				for (int dx = 0; dx < width; dx++) {
-					byte color;
-					if (isSmall)
-						color = SMALL_COLORS[width * dy + dx];
-					else
-						color = BIG_COLORS[width * dy + dx];
-					if (color == 0)
-						continue;
-					
-					int x = minX + dx;
-					int y = minY + dy;
-					canvas.setPixel(x, y, color);
-				}
-			}
-		}
-		
-		public void removeFrom(MapCanvas canvas) {
-			for (int y = minY; y < minY + width; y++) {
-				for (int x = minX; x < minX + width; x++) {
-					canvas.setPixel(x, y, canvas.getBasePixel(x, y));
-				}
-			}
 		}
 	}
 }
