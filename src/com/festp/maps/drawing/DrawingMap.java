@@ -61,7 +61,7 @@ public class DrawingMap implements IMap {
 		return info.getWidth();
 	}
 	
-	public boolean isFullDicovered() {
+	public boolean isFullDiscovered() {
 		return info.isFullDiscovered;
 	}
 	

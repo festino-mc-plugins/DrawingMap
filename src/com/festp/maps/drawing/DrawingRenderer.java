@@ -67,7 +67,7 @@ public class DrawingRenderer extends AbstractRenderer {
 		updateCursor(args, canvas, player.getDisplayName(), player.isSneaking());
 
 		boolean canRender = canRenderByZDistance(args);
-		if (canRender && !map.isFullDicovered()) {
+		if (canRender && !map.isFullDiscovered()) {
 			updateDiscovered(args);
 		}
 

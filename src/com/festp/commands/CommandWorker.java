@@ -148,7 +148,7 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 					type = "drawing";
 					DrawingMap dm = (DrawingMap) map;
 					info = "(" + dm.getX() + ", " + dm.getY() + ", " + dm.getZ() + "), scale: " + dm.getScale()
-							+ ", direction: " + dm.getDirection() + ", is_full_discovered: " + dm.isFullDicovered();
+							+ ", direction: " + dm.getDirection() + ", is_full_discovered: " + dm.isFullDiscovered();
 				}
 				sender.sendMessage(COLOR_OK + "Map #" + id + " is " + type);
 				sender.sendMessage(COLOR_OK + vanillaInfo);

@@ -129,7 +129,7 @@ public class MapFileManager {
 				ymlFormat.set("y_center", drawingMap.getY());
 				ymlFormat.set("z_center", drawingMap.getZ());
 				ymlFormat.set("position", drawingMap.getDirection().name());
-				ymlFormat.set("is_discovered", drawingMap.isFullDicovered());
+				ymlFormat.set("is_discovered", drawingMap.isFullDiscovered());
 				ymlFormat.save(file);
 
 				saveDiscovered(drawingMap);
@@ -142,7 +142,7 @@ public class MapFileManager {
 	
 	/** @return <b>false</b> if there was error */
 	public static boolean saveDiscovered(DrawingMap map) {
-		if (map.isFullDicovered()) {
+		if (map.isFullDiscovered()) {
 			File discoveredFile = getDiscoveredFile(map.getId());
 			if (discoveredFile.exists()) {
 				discoveredFile.delete();

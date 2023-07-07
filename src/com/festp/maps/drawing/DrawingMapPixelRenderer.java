@@ -32,7 +32,7 @@ public class DrawingMapPixelRenderer {
 	}
 
 	public boolean tryRender(int mapX, int mapY) {
-		if (!map.isFullDicovered()) {
+		if (!map.isFullDiscovered()) {
 			if (!discovered[mapX][mapY]) {
 				return false;
 			}
