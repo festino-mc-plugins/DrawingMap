@@ -6,8 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
 import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -136,25 +134,22 @@ public class MapEventHandler implements Listener {
 	}
 	
 	private MapView initMap(PlayerInteractEvent event) {
-		MapView res = null;
+		MapView view = null;
 		ItemStack item = event.getItem();
 		Player player = event.getPlayer();
 		ItemStack mapItem;
 		if (SmallMapUtils.isSmallMapByNbt(item)) {
 			int scale = SmallMapUtils.getScale(item);
-			MapView view = SmallMapUtils.genSmallMap(player.getLocation(), scale);
-			mapItem = MapUtils.getMap(view.getId());
-			res = view;
+			view = SmallMapUtils.genSmallMap(player.getLocation(), scale);
 		} else if (DrawingMapUtils.isDrawingMapByNbt(item)) {
-			MapView view = Bukkit.createMap(player.getWorld());
+			view = Bukkit.createMap(player.getWorld());
 			view.setScale(Scale.FARTHEST);
 			DrawingMap map = new DrawingMap(view.getId(), DrawingInfo.buildFrom(player.getLocation()));
 			MapFileManager.addMap(map);
-			mapItem = MapUtils.getMap(view.getId());
-			res = view;
 		} else {
 			return null;
 		}
+		mapItem = MapUtils.getMap(view.getId());
 
 		MapUtils.playInitSound(player);
 		
@@ -162,10 +157,10 @@ public class MapEventHandler implements Listener {
 			item.setAmount(item.getAmount() - 1);
 		else
 			if (player.getInventory().firstEmpty() < 0)
-				return res;
+				return view;
 		
 		Utils.giveOrDrop(player, mapItem);
-		return res;
+		return view;
 	}
 	
 	private IMap reinitMap(ItemStack item, Location newLoc) {

@@ -1,26 +1,20 @@
 package com.festp.maps;
 
-import java.util.Arrays;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 
 import com.festp.maps.drawing.DrawingMapUtils;
-import com.festp.maps.small.SmallMap;
 import com.festp.maps.small.SmallMapUtils;
 import com.festp.utils.NBTUtils;
 import com.festp.utils.UtilsVersion;
-import com.google.common.collect.Lists;
 
 public class MapUtils {
 	
@@ -57,21 +51,25 @@ public class MapUtils {
 	
 	public static MapView genNewView(IMap map)
 	{
-		MapView oldView = Bukkit.getMap(map.getId());
+		MapView oldView = getView(map);
 		MapView view = Bukkit.createMap(oldView.getWorld());
 		return view;
 	}
 	
 	public static MapView getView(IMap map)
 	{
-		MapView view = Bukkit.getMap(map.getId());
-		return view;
+		return getView(map.getId());
+	}
+	
+	@SuppressWarnings("deprecation")
+	public static MapView getView(int id) {
+		return Bukkit.getMap(id);
 	}
 	
 	/** slow method */
 	public static boolean isExists(int id)
 	{
-		return Bukkit.getMap(id) != null;
+		return getView(id) != null;
 	}
 	/** very slow method
 	 * @return <b>-1</b> if no maps */
@@ -108,23 +106,18 @@ public class MapUtils {
 	
 	public static ItemStack getMap(int id, boolean scaleName)
 	{
+		if (SmallMapUtils.isSmallMap(id)) {
+			return SmallMapUtils.getMap(id, scaleName);
+		}
+		if (DrawingMapUtils.isDrawingMap(id)) {
+			return DrawingMapUtils.getMap(id);
+		}
+
+		return getVanillaMap(id);
+	}
+	public static ItemStack getVanillaMap(int id) {
 		ItemStack item = new ItemStack(Material.FILLED_MAP, 1);
 		item = NBTUtils.setMapId(item, id);
-		if (SmallMapUtils.isSmallMap(id)) {
-			ItemMeta meta = item.getItemMeta();
-			
-			SmallMap map = (SmallMap) MapFileManager.load(id);
-			String[] lore = new String[] { "Scaling at " + map.getScale() + ":1" };
-			meta.setLore(Lists.asList("", lore));
-			if (scaleName)
-				meta.setDisplayName("Map (" + map.getScale() + ":1)");
-			
-			item.setItemMeta(meta);
-		} else if (DrawingMapUtils.isDrawingMap(id)) {
-			ItemMeta meta = item.getItemMeta();
-			meta.setLore(Arrays.asList(new String[] { "Drawing" }));
-			item.setItemMeta(meta);
-		}
 		return item;
 	}
 	

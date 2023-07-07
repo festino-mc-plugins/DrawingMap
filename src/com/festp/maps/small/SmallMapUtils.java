@@ -11,7 +11,6 @@ import com.festp.maps.IMap;
 import com.festp.maps.MapFileManager;
 import com.festp.maps.MapUtils;
 import com.festp.utils.NBTUtils;
-import com.google.common.collect.Lists;
 
 public class SmallMapUtils {
 	
@@ -39,16 +38,30 @@ public class SmallMapUtils {
 			return MapUtils.getMap(view.getId());
 		}
 	}
+	public static ItemStack getMap(int id, boolean scaleName) {
+		ItemStack item = MapUtils.getVanillaMap(id);
+		ItemMeta meta = item.getItemMeta();
+		
+		SmallMap map = (SmallMap) MapFileManager.load(id);
+		String[] lore = new String[] { "", "{\"translate\":\"filled_map.scale\", \"with\":[\"" + 1.0 / map.getScale() + "\"]}"}; // Scaling at 1:%s
+		
+		item.setItemMeta(meta);
+		item = NBTUtils.setLore(item, lore);
+		if (scaleName) {
+			String name = "{\"translate\":\"item.minecraft.filled_map\"},{\"text\":\" (" + map.getScale() + ":1)\"}";
+			item = NBTUtils.setDisplayName(item, name);
+		}
+		return item;
+	}
 	public static ItemStack getPreExtendedMap(int id)
 	{
 		SmallMap map = (SmallMap) MapFileManager.load(id);
 		ItemStack preMap = MapUtils.getMap(id, true);
-		ItemMeta preMapMeta = preMap.getItemMeta();
 		int scale = map.getScale() / 2;
-		preMapMeta.setDisplayName("Map (" + scale + ":1)");
-		String[] lore = new String[] { "Scaling at " + scale + ":1" };
-		preMapMeta.setLore(Lists.asList("", lore));
-		preMap.setItemMeta(preMapMeta);
+		String name = "{\"translate\":\"item.minecraft.filled_map\"},{\"text\":\" (" + scale + ":1)\"}";
+		String[] lore = new String[] { "", "{\"translate\":\"filled_map.scale\", \"with\":[\"" + 1.0 / scale + "\"]}"}; // Scaling at 1:%s
+		preMap = NBTUtils.setDisplayName(preMap, name);
+		preMap = NBTUtils.setLore(preMap, lore);
 		
 		return preMap;
 	}

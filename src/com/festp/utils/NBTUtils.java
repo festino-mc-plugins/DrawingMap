@@ -1,7 +1,14 @@
 package com.festp.utils;
 
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.Arrays;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
@@ -39,6 +46,54 @@ public class NBTUtils
 		if (!meta.hasMapId())
 			return -1;
 		return meta.getMapId();
+	}
+	
+	public static ItemStack setDisplayName(ItemStack item, String nbt) {
+		String NAME_PLACEHOLDER = "abcde12345";
+		ItemMeta meta = item.getItemMeta();
+		meta.setDisplayName(NAME_PLACEHOLDER);
+		item.setItemMeta(meta);
+		String ymlStr = getYml(item);
+		System.out.println(ymlStr);
+		// '{"extra":[{"text":"abcde123450"}],"text":""}'
+		ymlStr = ymlStr.replace("{\"text\":\"" + NAME_PLACEHOLDER + "\"}", nbt);
+		return fromYml(ymlStr);
+	}
+	public static ItemStack setLore(ItemStack item, String[] nbt) {
+		String LORE_PLACEHOLDER = "abcde12345";
+		String[] loreTemp = new String[nbt.length];
+		for (int i = 0; i < loreTemp.length; i++) {
+			loreTemp[i] = LORE_PLACEHOLDER + i;
+		}
+		ItemMeta meta = item.getItemMeta();
+		meta.setLore(Arrays.asList(loreTemp));
+		item.setItemMeta(meta);
+		String ymlStr = getYml(item);
+		//System.out.println(ymlStr);
+		for (int i = 0; i < loreTemp.length; i++) {
+			// '{"extra":[{"text":"abcde123450"}],"text":""}'
+			ymlStr = ymlStr.replace("{\"text\":\"" + LORE_PLACEHOLDER + i + "\"}", nbt[i]);
+		}
+		return fromYml(ymlStr);
+	}
+	private static String getYml(ItemStack item) {
+		String KEY = "a";
+		Reader reader = new StringReader("");
+		FileConfiguration ymlFormat = YamlConfiguration.loadConfiguration(reader);
+		ymlFormat.set(KEY, item);
+		return ymlFormat.saveToString();
+	}
+	private static ItemStack fromYml(String ymlStr) {
+		String KEY = "a";
+		Reader reader = new StringReader("");
+		FileConfiguration ymlFormat = YamlConfiguration.loadConfiguration(reader);
+		try {
+			ymlFormat.loadFromString(ymlStr);
+			return ymlFormat.getItemStack(KEY);
+		} catch (InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public static ItemStack setInt(ItemStack stack, String key, int val)
