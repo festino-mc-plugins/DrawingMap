@@ -3,8 +3,8 @@ package com.festp.commands;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -112,19 +112,33 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 			}
 			else if (args[0].equalsIgnoreCase(GETINFO_SUBCOMMAND))
 			{
-				if (args.length == 1)
+				Integer handId = null;
+				ItemStack handItem = null;
+				if (sender instanceof Player) {
+					Player player = (Player)sender;
+					handItem = player.getInventory().getItemInMainHand();
+					if (handItem == null || handItem.getType() != Material.FILLED_MAP)
+						handItem = player.getInventory().getItemInOffHand();
+					handId = MapUtils.getMapId(handItem);
+				}
+				if (args.length == 1 && handId == null)
 				{
 					sender.sendMessage(COLOR_USAGE + GETINFO_USAGE);
 					return false;
 				}
 
 				int id = -1;
-				try {
-					id = Integer.parseInt(args[1]);
-				} catch(Exception e) {
-					sender.sendMessage(COLOR_ERROR + "\"" + args[1] + "\" is not valid id. Please use integer numbers.");
-					return false;
+				if (args.length == 1) {
+					id = handId;
+				} else {
+					try {
+						id = Integer.parseInt(args[1]);
+					} catch(Exception e) {
+						sender.sendMessage(COLOR_ERROR + "\"" + args[1] + "\" is not valid id. Please use integer numbers.");
+						return false;
+					}
 				}
+				
 				if (!MapUtils.isExists(id))
 				{
 					sender.sendMessage(COLOR_ERROR + "Map #" + id + " doesn't exists.");
@@ -135,7 +149,7 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 				String type = "error";
 				String vanillaInfo = "";
 				String info = "";
-				MapView mp = Bukkit.getMap(id);
+				MapView mp = MapUtils.getView(id);
 				vanillaInfo = "center: " + mp.getWorld().getName() + " "+ "(" + mp.getCenterX() + ", " + mp.getCenterZ() + ")"
 						+ ", scale: "+ mp.getScale() + ", isLocked: " + mp.isLocked()
 						+ ", tracking: { isEnabled: " + mp.isTrackingPosition() + ", isUnlimited: "+ mp.isUnlimitedTracking() + "}";
@@ -153,6 +167,10 @@ public class CommandWorker implements CommandExecutor, TabCompleter
 							+ ", direction: " + dm.getDirection() + ", isFullDiscovered: " + dm.isFullDiscovered();
 				}
 				sender.sendMessage(COLOR_OK + "Map #" + id + " is " + type);
+				/*if (handId != null) {
+					sender.sendMessage(COLOR_OK + handItem.getItemMeta().getDisplayName());
+					sender.sendMessage(COLOR_OK + String.join(", ", handItem.getItemMeta().getLore()));
+				}*/
 				sender.sendMessage(COLOR_OK + vanillaInfo);
 				sender.sendMessage(COLOR_OK + info);
 				
