@@ -53,7 +53,7 @@ public class SmallMapUtils {
 		return preMap;
 	}
 	
-	/** create new map and attach renderer*/
+	/** create new map */
 	public static MapView genSmallMap(Location l, int scale)
 	{
 		MapView view = Bukkit.createMap(l.getWorld());
