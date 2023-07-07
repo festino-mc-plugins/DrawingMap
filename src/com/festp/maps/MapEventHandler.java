@@ -78,20 +78,28 @@ public class MapEventHandler implements Listener {
 	@EventHandler
 	public void onMapLoad(MapInitializeEvent event)
 	{
-		MapView mapView = event.getMap();
-		int id = mapView.getId();
-		if (MapFileManager.isLoaded(id))
+		onMapLoad(event.getMap());
+	}
+	
+	public static void onMapLoad(MapView mapView) {
+		MapRenderer mainRenderer = mapView.getRenderers().get(0);
+		if (mainRenderer instanceof SmallRenderer)
 			return;
-		
+		if (mainRenderer instanceof DrawingRenderer)
+			return;
+		if (mapView.getRenderers().size() > 1 && MapFileManager.load(mapView.getId()) != null)
+			return;
+		// map was not initialized
+		//  or was initialized as vanilla, but it is not vanilla
 		initRenderers(mapView);
 	}
 	
-	private void initRenderers(MapView mapView) {
+	private static void initRenderers(MapView mapView) {
 		IMap map = initMainRenderer(mapView);
 		initNetherCursorRenderer(mapView, map);
 	}
 	
-	private IMap initMainRenderer(MapView mapView) {
+	private static IMap initMainRenderer(MapView mapView) {
 		int id = mapView.getId();
 		IMap map = MapFileManager.load(id);
 		if (map == null) {
@@ -116,7 +124,7 @@ public class MapEventHandler implements Listener {
 		return map;
 	}
 	
-	private void initNetherCursorRenderer(MapView mapView, IMap map) {
+	private static void initNetherCursorRenderer(MapView mapView, IMap map) {
 		// TODO use configuration to enable nether cursors
 		if (mapView.getWorld().getEnvironment() != Environment.NORMAL)
 			return;

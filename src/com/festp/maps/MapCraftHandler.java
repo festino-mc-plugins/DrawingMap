@@ -2,6 +2,7 @@ package com.festp.maps;
 
 import java.util.Arrays;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
@@ -129,17 +130,33 @@ public class MapCraftHandler implements Listener {
 			return;
 		}
 		IMap m = MapFileManager.load(id);
-		if (m != null) {
-			if (m instanceof SmallMap) {
-				onSmallCartography(event, (SmallMap) m);
-			} else if (m instanceof DrawingMap) {
-				onDrawingCartography(event, (DrawingMap) m);
-			} else {
-				event.setCancelled(true);
-				inv.setItem(2, null);
-				((Player)event.getWhoClicked()).updateInventory();
-				return;
+
+		int maxId = MapUtils.getMaxId();
+		if (m instanceof SmallMap) {
+			onSmallCartography(event, (SmallMap) m);
+		} else if (m instanceof DrawingMap) {
+			onDrawingCartography(event, (DrawingMap) m);
+		} else if (m != null) {
+			event.setCancelled(true);
+			inv.setItem(2, null);
+			((Player)event.getWhoClicked()).updateInventory();
+			return;
+		}
+
+		// init vanilla (nether cursors) and IMaps
+		TaskList.add(new DelayedTask(1, new Runnable() {
+			@Override
+			public void run() {
+				initRenderers(maxId);
 			}
+		}));
+	}
+	
+	@SuppressWarnings("deprecation")
+	private static void initRenderers(int lastMaxId) {
+		int newMaxId = MapUtils.getMaxId();
+		for (int i = lastMaxId + 1; i <= newMaxId; i++) {
+			MapEventHandler.onMapLoad(Bukkit.getMap(i));
 		}
 	}
 	
