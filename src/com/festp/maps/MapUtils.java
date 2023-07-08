@@ -61,10 +61,6 @@ public class MapUtils {
 		return vanillaRenderer;
 	}
 	
-	public static void addRenderer(MapView view, MapRenderer mapRenderer) {
-		view.addRenderer(mapRenderer);
-	}
-	
 	public static MapView genNewView(IMap map)
 	{
 		MapView oldView = getView(map);
