@@ -14,6 +14,7 @@ import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.map.MapView.Scale;
 import org.bukkit.map.MapCursor.Type;
+import org.bukkit.map.MapCursorCollection;
 import org.bukkit.util.Vector;
 
 import com.festp.maps.DrawingMapCoordinator;
@@ -22,6 +23,7 @@ import com.festp.maps.MapUtils;
 import com.festp.maps.PlaneRotation3D;
 import com.festp.maps.small.SmallMap;
 import com.festp.maps.small.SmallMapUtils;
+import com.festp.utils.NmsWorldMapHelper;
 import com.festp.utils.Vector3i;
 
 public class NetherCursorRenderer extends MapRenderer {
@@ -49,6 +51,10 @@ public class NetherCursorRenderer extends MapRenderer {
 		// TODO move the code to scheduler
 		// and check all players (not only holding the map in hand)
 		updateCursors(player);
+		
+		if (mapInfo.isVanilla) {
+			removeOverworldCursors(view, player);
+		}
 
         for (NetherCursor cursor : this.netherCursors.values()) {
         	if (player.canSee(cursor.getPlayer()))
@@ -56,6 +62,22 @@ public class NetherCursorRenderer extends MapRenderer {
         }
 	}
 	
+	private void removeOverworldCursors(MapView view, Player player) {
+		// or scan all the players matching cursors
+		// disable cursors without matching
+		MapCanvas prevCanvas = NmsWorldMapHelper.getCanvasBefore(view, this, player);
+		MapCursorCollection cursors = prevCanvas.getCursors();
+		for (int i = cursors.size() - 1; i >= 0; i--) {
+			MapCursor cursor = cursors.getCursor(i);
+			if (cursor.getType() == Type.WHITE_POINTER) {
+				// TODO condition
+				cursors.removeCursor(cursor);
+			}
+		}
+		// can't work because of the implementation
+		// https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/map/CraftMapView.java#177
+	}
+
 	private void updateCursors(Player player) {
 		for (String playerName : netherCursors.keySet()) {
 			Player p = Bukkit.getPlayerExact(playerName);
@@ -132,6 +154,7 @@ public class NetherCursorRenderer extends MapRenderer {
 	// TODO united args boilerplate
 	private class MapInfo
 	{
+		public final boolean isVanilla;
 		public final int id;
 		public final World world;
 		public final int xCenter;
@@ -145,6 +168,7 @@ public class NetherCursorRenderer extends MapRenderer {
 		
 		public MapInfo(SmallMap map, World w)
 		{
+			isVanilla = false;
 			id = map.getId();
 			world = w;
 			scale = map.getScale();
@@ -159,6 +183,7 @@ public class NetherCursorRenderer extends MapRenderer {
 		
 		public MapInfo(MapView view)
 		{
+			isVanilla = true;
 			id = view.getId();
 			world = view.getWorld();
 			int blocksPerPixel = getBlocksPerPixel(view.getScale());

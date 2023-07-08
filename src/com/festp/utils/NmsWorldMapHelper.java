@@ -3,8 +3,10 @@ package com.festp.utils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapCursorCollection;
 import org.bukkit.map.MapRenderer;
@@ -31,6 +33,10 @@ public class NmsWorldMapHelper
 		} catch (ClassNotFoundException e) { }
 		return null;
 	}
+	private static String getVersionString()
+	{
+		return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+	}
 	
 	private static Class<?> getNmsClass_MapIcon()
 	{
@@ -42,10 +48,6 @@ public class NmsWorldMapHelper
 			return Class.forName("net.minecraft.server." + version + ".MapIcon");
 		} catch (ClassNotFoundException e) { }
 		return null;
-	}
-	private static String getVersionString()
-	{
-		return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 	}
 
 	public static byte[] getColors(MapCanvas canvas) {
@@ -65,7 +67,6 @@ public class NmsWorldMapHelper
 	
 	/** use <b>data[y * 128 + x]</b> to get colors by x and y coordinates 
 	 * @return <b>null</b> if couldn't get pixels */
-	@SuppressWarnings("unchecked")
 	public static byte[] getColors(MapView mapView)
 	{
 		/* org.bukkit.craftbukkit.v1_18_R1.map.CraftMapCanvas
@@ -74,25 +75,43 @@ public class NmsWorldMapHelper
 	         return 0;
 	     byte[] data = this.buffer;
 	     return data[y * 128 + x]; */
+		Map<MapRenderer, Map<Player, MapCanvas>> canvases = getCanvases(mapView);
+		if (canvases == null)
+			return null;
+		for (Map<Player, MapCanvas> pair : canvases.values()) {
+			for (MapCanvas canvas : pair.values()) {
+				return getColors(canvas);
+			}
+		}
+		return null;
+	}
+	public static MapCanvas getCanvas(MapView view, MapRenderer renderer, Player player) {
+		Map<MapRenderer, Map<Player, MapCanvas>> canvases = getCanvases(view);
+		for (Entry<MapRenderer, Map<Player, MapCanvas>> rendererEntry : canvases.entrySet()) {
+			if (renderer.equals(rendererEntry.getKey())) {
+				for (Entry<Player, MapCanvas> playerEntry : rendererEntry.getValue().entrySet()) {
+					if (player.equals(playerEntry.getKey()) || !renderer.isContextual()) {
+						return (MapCanvas)playerEntry.getValue();
+					}
+				}
+			}
+		}
+		return null;
+	}
+	/** Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>> */
+	@SuppressWarnings("unchecked")
+	private static Map<MapRenderer, Map<Player, MapCanvas>> getCanvases(MapView mapView) {
 		try {
 			Field fieldCanvases = mapView.getClass().getDeclaredField("canvases");
 			fieldCanvases.setAccessible(true);
 			Object preCanvases = fieldCanvases.get(mapView);
 			if (!(preCanvases instanceof Map<?, ?>)) {
-				Logger.severe("NmsWorldMapHelper couldn't get canvases");
+				Logger.severe(NmsWorldMapHelper.class.getSimpleName() + " couldn't get canvases");
 				return null;
 			}
 
 			//Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>> canvases = (Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>>) preCanvases;
-			Map<MapRenderer, Map<Object, Object>> canvases = (Map<MapRenderer, Map<Object, Object>>) preCanvases;
-			//for (Map<CraftPlayer, CraftMapCanvas> pair : canvases.values())
-			for (Map<Object, Object> pair : canvases.values()) {
-				//for (CraftMapCanvas canvas : pair.values())
-				for (Object canvas : pair.values()) {
-					return getColors((MapCanvas) canvas);
-				}
-			}
-			return null;
+			return (Map<MapRenderer, Map<Player, MapCanvas>>) preCanvases;
 		} catch (Exception e) {
 			Logger.severe("Error while get pixels from map #" + mapView.getId());
 			e.printStackTrace();
@@ -179,5 +198,19 @@ public class NmsWorldMapHelper
 			e.printStackTrace();
 		}
 		return cursors;
+	}
+	
+	public static MapCanvas getCanvasBefore(MapView view, MapRenderer beforeRenderer, Player player) {
+		MapRenderer prevRenderer = getRendererBefore(view, beforeRenderer);
+		return getCanvas(view, prevRenderer, player);
+	}
+	private static MapRenderer getRendererBefore(MapView view, MapRenderer beforeRenderer) {
+		MapRenderer prevRenderer = null;
+		for (MapRenderer renderer : view.getRenderers()) {
+			if (renderer.equals(beforeRenderer))
+				return prevRenderer;
+			prevRenderer = renderer;
+		}
+		return null;
 	}
 }
