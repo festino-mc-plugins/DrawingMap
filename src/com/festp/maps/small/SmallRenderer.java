@@ -65,6 +65,7 @@ public class SmallRenderer extends AbstractRenderer {
 			return;
 		}
 		
+		// TODO try use vanilla MapIcons instead of NMS
 		vanillaRenderer.render(view, canvas, player);
 		byte[] colors = Arrays.copyOf(NmsWorldMapHelper.getColors(canvas), 0x3FFF);
 		int minMapX = minX - view.getCenterX() + 64;
