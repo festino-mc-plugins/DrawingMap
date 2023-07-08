@@ -1,6 +1,7 @@
 package com.festp.maps.nether;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -62,7 +63,6 @@ public class NetherCursorRenderer extends MapRenderer {
         }
         
 		// TODO move the code to scheduler
-		// and check all players (not only holding the map in hand)
 		updateCursors(player);
 		
 		if (mapInfo.isVanilla) {
@@ -106,13 +106,16 @@ public class NetherCursorRenderer extends MapRenderer {
 	}
 
 	private void updateCursors(Player player) {
-		for (String playerName : netherCursors.keySet()) {
+		for (String playerName : new HashSet<>(netherCursors.keySet())) {
 			Player p = Bukkit.getPlayerExact(playerName);
+			if (p == null) {
+				netherCursors.remove(playerName);
+				continue;
+			}
 			PlayerInfo playerInfo = new PlayerInfo(p, mapInfo);
 			updateNetherCursor(mapInfo, playerInfo);
 		}
 		if (!netherCursors.containsKey(player.getName())) {
-			// TODO remove overworld pointer
 			PlayerInfo playerInfo = new PlayerInfo(player, mapInfo);
 			updateNetherCursor(mapInfo, playerInfo);
 		}
