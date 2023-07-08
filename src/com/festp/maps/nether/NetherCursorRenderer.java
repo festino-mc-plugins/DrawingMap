@@ -94,6 +94,8 @@ public class NetherCursorRenderer extends MapRenderer {
 			MapCursor cursor = getOverworldCursor(mapInfo, p.getLocation());
 			if (!view.isUnlimitedTracking() && cursor.getType() == Type.SMALL_WHITE_CIRCLE)
 				continue;
+			if (!MapUtils.hasMap(p, view.getId()))
+				continue;
 			cursors.addCursor(cursor);
 		}
 	}
