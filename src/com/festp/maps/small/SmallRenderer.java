@@ -12,12 +12,11 @@ import org.bukkit.map.MapCursorCollection;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 
-import com.festp.maps.AbstractRenderer;
 import com.festp.maps.DrawingMapCoordinator;
 import com.festp.maps.MapUtils;
 import com.festp.utils.NmsWorldMapHelper;
 
-public class SmallRenderer extends AbstractRenderer {
+public class SmallRenderer extends MapRenderer {
 	
 	static final int RENDER_DISTANCE_SQUARED = 128 * 128;
 	
@@ -25,22 +24,12 @@ public class SmallRenderer extends AbstractRenderer {
 	final MapRenderer vanillaRenderer;
 	
 	public SmallRenderer(SmallMap map, MapRenderer vanillaRenderer) {
-		super(map);
 		this.map = map;
 		this.vanillaRenderer = vanillaRenderer;
 	}
 
-	@Override
-	protected void renderSpecific(MapView view, MapCanvas canvas, Player player)
+	public void render(MapView view, MapCanvas canvas, Player player)
 	{
-		Integer mainId = MapUtils.getMapId(player.getInventory().getItemInMainHand());
-		if (mainId == null || mainId != view.getId())
-		{
-			Integer offId = MapUtils.getMapId(player.getInventory().getItemInOffHand());
-			if (offId == null || offId != view.getId())
-				return;
-		}
-		
 		updatePixels(view, canvas, player);
 		
 		updateCursors(canvas);

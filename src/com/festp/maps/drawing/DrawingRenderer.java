@@ -10,7 +10,7 @@ import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.util.Vector;
 
-import com.festp.maps.AbstractRenderer;
+import com.festp.maps.CustomRenderer;
 import com.festp.maps.DrawingMapCoordinator;
 import com.festp.maps.MapFileManager;
 import com.festp.maps.MapUtils;
@@ -18,7 +18,7 @@ import com.festp.maps.PaletteUtils;
 import com.festp.maps.PlaneRotation3D;
 import com.festp.utils.Vector3i;
 
-public class DrawingRenderer extends AbstractRenderer {
+public class DrawingRenderer extends CustomRenderer {
 
 	static final int RENDER_DISTANCE = 6;
 	static final int RENDER_DISTANCE_SQUARED = RENDER_DISTANCE * RENDER_DISTANCE;

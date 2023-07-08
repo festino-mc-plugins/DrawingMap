@@ -1,7 +1,5 @@
 package com.festp.maps;
 
-import java.awt.image.BufferedImage;
-
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -116,7 +114,7 @@ public class MapEventHandler implements Listener {
 		}
 
 		MapRenderer vanillaRenderer = MapUtils.removeRenderers(mapView);
-		AbstractRenderer renderer = null;
+		MapRenderer renderer = null;
 		if (map instanceof SmallMap) {
 			renderer = new SmallRenderer((SmallMap) map, vanillaRenderer);
 		} else if (map instanceof DrawingMap) {
@@ -124,11 +122,6 @@ public class MapEventHandler implements Listener {
 		}
 		if (renderer != null) {
 			mapView.addRenderer(renderer);
-			BufferedImage image = MapFileManager.loadImage(id);
-			if (image != null)
-			{
-				renderer.renderImage(image);
-			}
 		}
 		return map;
 	}
