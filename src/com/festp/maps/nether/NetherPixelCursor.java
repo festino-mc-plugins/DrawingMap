@@ -1,8 +1,9 @@
 package com.festp.maps.nether;
 
+import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
 
-class NetherPixelCursor
+class NetherPixelCursor implements NetherCursor
 {
 	private final static byte O = 0; // transparent
 	private final static byte B = 119; // black darkest
@@ -29,13 +30,15 @@ class NetherPixelCursor
 	private final static int SMALL_OFFSET = 1;
 	private final static int BIG_OFFSET = 2;
 	
+	final Player player;
 	final boolean isSmall;
 	final int offset;
 	final int width;
 	final int minX;
 	final int minY;
 	
-	public NetherPixelCursor(int mapX, int mapY, boolean isSmall) {
+	public NetherPixelCursor(Player player, int mapX, int mapY, boolean isSmall) {
+		this.player = player;
 		this.isSmall = isSmall;
 		int width, offset;
 		if (isSmall) {
@@ -56,6 +59,10 @@ class NetherPixelCursor
 		int min = 0 - offset;
 		int max = 128 + offset - width;
 		return Math.max(min, Math.min(max, c - width / 2));
+	}
+	
+	public Player getPlayer() {
+		return player;
 	}
 	
 	public void drawOn(MapCanvas canvas) {
