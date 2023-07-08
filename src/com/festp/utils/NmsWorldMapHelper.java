@@ -3,7 +3,6 @@ package com.festp.utils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -86,17 +85,10 @@ public class NmsWorldMapHelper
 		return null;
 	}
 	public static MapCanvas getCanvas(MapView view, MapRenderer renderer, Player player) {
-		Map<MapRenderer, Map<Player, MapCanvas>> canvases = getCanvases(view);
-		for (Entry<MapRenderer, Map<Player, MapCanvas>> rendererEntry : canvases.entrySet()) {
-			if (renderer.equals(rendererEntry.getKey())) {
-				for (Entry<Player, MapCanvas> playerEntry : rendererEntry.getValue().entrySet()) {
-					if (player.equals(playerEntry.getKey()) || !renderer.isContextual()) {
-						return (MapCanvas)playerEntry.getValue();
-					}
-				}
-			}
-		}
-		return null;
+		Map<MapRenderer, Map<Player, MapCanvas>> renderers = getCanvases(view);
+		Map<Player, MapCanvas> players = renderers.get(renderer);
+		MapCanvas canvas = players.get(renderer.isContextual() ? player : null);
+		return canvas;
 	}
 	/** Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>> */
 	@SuppressWarnings("unchecked")
