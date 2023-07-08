@@ -23,15 +23,23 @@ import com.festp.maps.MapUtils;
 import com.festp.maps.PlaneRotation3D;
 import com.festp.maps.small.SmallMap;
 import com.festp.maps.small.SmallMapUtils;
-import com.festp.utils.NmsWorldMapHelper;
 import com.festp.utils.Vector3i;
 
 public class NetherCursorRenderer extends MapRenderer {
 	
-	final Map<String, NetherCursor> netherCursors = new HashMap<>();
-	final MapInfo mapInfo;
+	private final Map<String, NetherCursor> netherCursors = new HashMap<>();
+	private final MapInfo mapInfo;
+	private final MapRenderer prevRenderer;
+	public MapRenderer getPrevRenderer() {
+		return prevRenderer;
+	}
 	
-	public NetherCursorRenderer(MapView view) {
+	private NetherCursorRenderer(MapInfo info, MapRenderer prevRenderer) {
+		this.mapInfo = info;
+		this.prevRenderer = prevRenderer;
+	}
+
+	public static void add(MapView view) {
 		MapInfo info;
 		if (SmallMapUtils.isSmallMap(view.getId())) {
 			SmallMap map = (SmallMap)MapFileManager.load(view.getId());
@@ -39,7 +47,12 @@ public class NetherCursorRenderer extends MapRenderer {
 		} else {
 			info = new MapInfo(view);
 		}
-		mapInfo = info;
+		MapRenderer oldRenderer = null;
+		if (info.isVanilla) {
+			oldRenderer = view.getRenderers().get(0);
+			view.removeRenderer(oldRenderer);
+		}
+		view.addRenderer(new NetherCursorRenderer(info, oldRenderer));
 	}
 
 	@Override
@@ -53,29 +66,41 @@ public class NetherCursorRenderer extends MapRenderer {
 		updateCursors(player);
 		
 		if (mapInfo.isVanilla) {
-			removeOverworldCursors(view, player);
+			renderVanilla(view, canvas, player);
 		}
 
         for (NetherCursor cursor : this.netherCursors.values()) {
-        	if (player.canSee(cursor.getPlayer()))
-        		cursor.drawOn(canvas);
+        	if (player != null && !player.canSee(cursor.getPlayer()))
+				continue;
+			if (!view.isUnlimitedTracking() && cursor.isSmall())
+				continue;
+        	cursor.drawOn(canvas);
         }
 	}
 	
-	private void removeOverworldCursors(MapView view, Player player) {
-		// or scan all the players matching cursors
-		// disable cursors without matching
-		MapCanvas prevCanvas = NmsWorldMapHelper.getCanvasBefore(view, this, player);
-		MapCursorCollection cursors = prevCanvas.getCursors();
+	private void renderVanilla(MapView view, MapCanvas canvas, Player player) {
+		prevRenderer.render(view, canvas, player);
+		MapCursorCollection cursors = canvas.getCursors();
 		for (int i = cursors.size() - 1; i >= 0; i--) {
 			MapCursor cursor = cursors.getCursor(i);
-			if (cursor.getType() == Type.WHITE_POINTER) {
-				// TODO condition
-				cursors.removeCursor(cursor);
-			}
+			if (!isOverworldPlayerCursor(cursor.getType()))
+				continue;
+			
+			cursors.removeCursor(cursor);
 		}
-		// can't work because of the implementation
-		// https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/map/CraftMapView.java#177
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			if (player != null && !player.canSee(p))
+				continue;
+			MapCursor cursor = getOverworldCursor(mapInfo, p.getLocation());
+			if (!view.isUnlimitedTracking() && cursor.getType() == Type.SMALL_WHITE_CIRCLE)
+				continue;
+			cursors.addCursor(cursor);
+		}
+	}
+	private static boolean isOverworldPlayerCursor(Type cursorType) {
+		return cursorType == Type.WHITE_POINTER
+				|| cursorType == Type.WHITE_CIRCLE
+				|| cursorType == Type.SMALL_WHITE_CIRCLE;
 	}
 
 	private void updateCursors(Player player) {
@@ -107,10 +132,21 @@ public class NetherCursorRenderer extends MapRenderer {
 		putNetherCursor(mapInfo, playerInfo);
 	}
 	private void putNetherCursor(MapInfo mapInfo, PlayerInfo playerInfo) {
+		MapCursor cursor = getOverworldCursor(mapInfo, playerInfo.playerLoc.multiply(8));
+		boolean useCursor = false;
+		if (cursor.getType() == Type.WHITE_POINTER || useCursor) {
+			cursor.setType(Type.RED_POINTER);
+			netherCursors.put(playerInfo.playerName, new NetherIconCursor(playerInfo.player, cursor));
+		} else {
+			boolean isSmall = cursor.getType() == Type.SMALL_WHITE_CIRCLE;
+			netherCursors.put(playerInfo.playerName, new NetherPixelCursor(playerInfo.player, cursor.getX(), cursor.getY(), isSmall));
+		}
+	}
+	private static MapCursor getOverworldCursor(MapInfo mapInfo, Location loc) {
 		final int halfWidth = mapInfo.width / 2;
 		Vector cursorPlayer = mapInfo.coords.getMapCoord(
 				new Vector(mapInfo.xCenter, mapInfo.yCenter, mapInfo.zCenter),
-				playerInfo.playerLoc.toVector().multiply(8));
+				loc.toVector());
 		double x = cursorPlayer.getX();
 		double y = cursorPlayer.getY();
 		double mapX = Math.round(x * 2 * mapInfo.scale);
@@ -118,41 +154,28 @@ public class NetherCursorRenderer extends MapRenderer {
 		x = mapX * 0.5 / mapInfo.scale;
 		y = mapY * 0.5 / mapInfo.scale;
 		if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
-			MapCursor cursor = mapInfo.coords.getCursor3D((byte) mapX, (byte) mapY, playerInfo.playerLoc.multiply(8), true);
-			cursor.setType(Type.RED_POINTER);
-			//cursor.setCaption(player.getDisplayName());
-			netherCursors.put(playerInfo.playerName, new NetherIconCursor(playerInfo.player, cursor));
+			MapCursor cursor = mapInfo.coords.getCursor3D((byte) mapX, (byte) mapY, loc, true);
+			cursor.setType(Type.WHITE_POINTER);
+			return cursor;
 		}
 		else {
 			final int maxDistance = halfWidth + 2 * mapInfo.width;
 			final boolean isNear = -maxDistance <= x && x < maxDistance && -maxDistance <= y && y < maxDistance;
 			mapX = clamp(mapX, -128, 127);
 			mapY = clamp(mapY, -128, 127);
-			drawCircleCursor(playerInfo, (byte) mapX, (byte) mapY, !isNear);
-		}
-	}
-	private void drawCircleCursor(PlayerInfo playerInfo, byte mapX, byte mapY, boolean isSmall) {
-		boolean useCursor = false;
-		if (useCursor) {
-			MapCursor cursor = new MapCursor(mapX, mapY, (byte)0, Type.WHITE_CIRCLE, true);
-			//cursor.setCaption(player.getDisplayName());
-			if (isSmall)
+			MapCursor cursor = new MapCursor((byte) mapX, (byte) mapY, (byte) 0, Type.WHITE_CIRCLE, true);
+			if (!isNear)
 				cursor.setType(Type.SMALL_WHITE_CIRCLE);
-			netherCursors.put(playerInfo.playerName, new NetherIconCursor(playerInfo.player, cursor));
+			return cursor;
 		}
-		else {
-			netherCursors.remove(playerInfo.playerName);
-			netherCursors.put(playerInfo.playerName, new NetherPixelCursor(playerInfo.player, mapX, mapY, isSmall));
-		}
-		
 	}
 
-	private double clamp(double x, double a, double b) {
+	private static double clamp(double x, double a, double b) {
 		return Math.max(a, Math.min(b, x));
 	}
 
 	// TODO united args boilerplate
-	private class MapInfo
+	private static class MapInfo
 	{
 		public final boolean isVanilla;
 		public final int id;
@@ -215,7 +238,7 @@ public class NetherCursorRenderer extends MapRenderer {
 		}
 	}
 
-	private class PlayerInfo {
+	private static class PlayerInfo {
 		public final Player player;
 		public final String playerName;
 		public final Location playerLoc;

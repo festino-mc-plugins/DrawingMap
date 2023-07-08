@@ -7,4 +7,5 @@ public interface NetherCursor {
 	public Player getPlayer();
 	public void drawOn(MapCanvas canvas);
 	public void removeFrom(MapCanvas canvas);
+	public boolean isSmall();
 }

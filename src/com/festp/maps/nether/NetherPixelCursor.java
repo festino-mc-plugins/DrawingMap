@@ -64,6 +64,10 @@ class NetherPixelCursor implements NetherCursor
 	public Player getPlayer() {
 		return player;
 	}
+
+	public boolean isSmall() {
+		return isSmall;
+	}
 	
 	public void drawOn(MapCanvas canvas) {
 		final byte[] colors;

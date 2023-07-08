@@ -81,12 +81,23 @@ public class MapEventHandler implements Listener {
 	
 	public static void onMapLoad(MapView mapView) {
 		MapRenderer mainRenderer = mapView.getRenderers().get(0);
+		//System.out.println(mapView.getId() + " " + mapView.getRenderers().size() + " " + mainRenderer + (mainRenderer instanceof NetherCursorRenderer ? " " + ((NetherCursorRenderer)mainRenderer).getPrevRenderer() : ""));
 		if (mainRenderer instanceof SmallRenderer)
 			return;
 		if (mainRenderer instanceof DrawingRenderer)
 			return;
-		if (mapView.getRenderers().size() > 1 && MapFileManager.load(mapView.getId()) != null)
-			return;
+		if (mapView.getRenderers().size() > 1 && MapFileManager.load(mapView.getId()) == null)
+			return; // was initialized as vanilla and it is vanilla
+		if (mainRenderer instanceof NetherCursorRenderer) {
+			NetherCursorRenderer ncr = (NetherCursorRenderer)mainRenderer;
+			MapRenderer prevRenderer = ncr.getPrevRenderer();
+			if (prevRenderer instanceof SmallRenderer)
+				return;
+			if (prevRenderer instanceof DrawingRenderer)
+				return;
+			if (MapFileManager.load(mapView.getId()) == null)
+				return;
+		}
 		// map was not initialized
 		//  or was initialized as vanilla, but it is not vanilla
 		initRenderers(mapView);
@@ -112,7 +123,7 @@ public class MapEventHandler implements Listener {
 			renderer = new DrawingRenderer((DrawingMap) map, vanillaRenderer);
 		}
 		if (renderer != null) {
-			MapUtils.addRenderer(mapView, renderer);
+			mapView.addRenderer(renderer);
 			BufferedImage image = MapFileManager.loadImage(id);
 			if (image != null)
 			{
@@ -130,7 +141,7 @@ public class MapEventHandler implements Listener {
 			return;
 		if (map != null && !(map instanceof SmallMap))
 			return;
-		MapUtils.addRenderer(mapView, new NetherCursorRenderer(mapView));
+		NetherCursorRenderer.add(mapView);
 	}
 	
 	private MapView initMap(PlayerInteractEvent event) {
