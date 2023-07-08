@@ -17,6 +17,8 @@ import com.festp.utils.NBTUtils;
 import com.festp.utils.UtilsVersion;
 
 public class MapUtils {
+	public static final int MIN_ID = initMinId();
+	public static final int MAX_ID = initMaxId();
 	
 	public static int getEmptySlot(PlayerInventory inv)
 	{
@@ -33,6 +35,20 @@ public class MapUtils {
 		return -1;
 	}
 	
+	private static int initMaxId() {
+		if (UtilsVersion.SUPPORTS_INTEGER_MAP_ID) {
+			return Integer.MAX_VALUE;
+		}
+		return Short.MAX_VALUE;
+	}
+
+	private static int initMinId() {
+		if (UtilsVersion.SUPPORTS_INTEGER_MAP_ID) {
+			return Integer.MIN_VALUE;
+		}
+		return Short.MIN_VALUE;
+	}
+
 	/** @return first removed renderer */
 	public static MapRenderer removeRenderers(MapView view) {
 		MapRenderer vanillaRenderer = null;

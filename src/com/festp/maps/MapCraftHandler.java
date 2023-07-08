@@ -157,11 +157,17 @@ public class MapCraftHandler implements Listener {
 		}));
 	}
 	
-	@SuppressWarnings("deprecation")
 	private static void initRenderers(int lastMaxId) {
+		lastMaxId++;
 		int newMaxId = MapUtils.getMaxId();
-		for (int i = lastMaxId + 1; i <= newMaxId; i++) {
-			MapEventHandler.onMapLoad(Bukkit.getMap(i));
+		if (lastMaxId >= 0 && newMaxId < 0) {
+			for (int id = lastMaxId; id <= MapUtils.MAX_ID; id++) {
+				MapEventHandler.onMapLoad(MapUtils.getView(id));
+			}
+			lastMaxId = MapUtils.MIN_ID;
+		}
+		for (int id = lastMaxId; id <= newMaxId; id++) {
+			MapEventHandler.onMapLoad(MapUtils.getView(id));
 		}
 	}
 	
