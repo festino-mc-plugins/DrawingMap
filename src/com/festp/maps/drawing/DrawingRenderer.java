@@ -14,8 +14,8 @@ import com.festp.maps.CustomRenderer;
 import com.festp.maps.DrawingMapCoordinator;
 import com.festp.maps.MapFileManager;
 import com.festp.maps.MapUtils;
-import com.festp.maps.PaletteUtils;
 import com.festp.maps.PlaneRotation3D;
+import com.festp.utils.PaletteUtils;
 import com.festp.utils.Vector3i;
 
 public class DrawingRenderer extends CustomRenderer {

@@ -48,6 +48,16 @@ public class NmsWorldMapHelper
 		} catch (ClassNotFoundException e) { }
 		return null;
 	}
+	public static Class<?> getNmsClass_MaterialMapColor() {
+		try {
+			if (UtilsVersion.USE_VERSION_INDEPENDENT_NMS)
+				return Class.forName("net.minecraft.world.level.material.MaterialMapColor");
+			// net.minecraft.server.v1_16_R3.MaterialMapColor
+			String version = getVersionString();
+			return Class.forName("net.minecraft.server." + version + ".MaterialMapColor"); // TODO test
+		} catch (ClassNotFoundException e) { }
+		return null;
+	}
 
 	public static byte[] getColors(MapCanvas canvas) {
 		try {

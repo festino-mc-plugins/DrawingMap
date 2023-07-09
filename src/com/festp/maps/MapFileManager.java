@@ -21,6 +21,7 @@ import com.festp.Main;
 import com.festp.maps.drawing.DrawingInfo;
 import com.festp.maps.drawing.DrawingMap;
 import com.festp.maps.small.SmallMap;
+import com.festp.utils.PaletteUtils;
 
 public class MapFileManager {
 	private static final String DIR = Main.getPath() + Main.mapsdir + System.getProperty("file.separator");
