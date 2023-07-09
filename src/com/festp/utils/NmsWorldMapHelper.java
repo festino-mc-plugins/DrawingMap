@@ -136,7 +136,9 @@ public class NmsWorldMapHelper
 		return true;
 	}
 
-	@SuppressWarnings({ "unchecked", "deprecation" })
+	/** Certainly works on 1.19-1.20.1 */
+	@Deprecated
+	@SuppressWarnings({ "unchecked" })
 	public static MapCursorCollection getCursors(MapView view)
 	{
 		MapCursorCollection cursors = new MapCursorCollection();

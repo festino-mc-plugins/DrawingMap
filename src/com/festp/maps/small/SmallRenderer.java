@@ -78,16 +78,13 @@ public class SmallRenderer extends MapRenderer {
 	
 	private void updateCursors(MapCanvas canvas)
 	{
-		// https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/map/CraftMapRenderer.java#32
-        MapCursorCollection cursors = canvas.getCursors();
-        while (cursors.size() > 0) {
-            cursors.removeCursor(cursors.getCursor(0));
-        }
+        MapCursorCollection vanillaCursors = canvas.getCursors();
+        MapCursorCollection cursors = new MapCursorCollection();
+        canvas.setCursors(cursors);
 
         int mapScale = map.getScale();
         int startX = worldToCursorX(canvas.getMapView().getCenterX());
         int startZ = worldToCursorZ(canvas.getMapView().getCenterZ());
-        MapCursorCollection vanillaCursors = NmsWorldMapHelper.getCursors(canvas.getMapView());
         for (int i = 0; i < vanillaCursors.size(); i++) {
         	MapCursor cursor = vanillaCursors.getCursor(i);
         	Type cursorType = cursor.getType();
