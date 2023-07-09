@@ -8,10 +8,6 @@ import java.util.List;
 
 import org.bukkit.block.Block;
 
-import net.minecraft.core.BlockPosition;
-import net.minecraft.world.level.IBlockAccess;
-import net.minecraft.world.level.block.state.IBlockData;
-
 public class PaletteUtils {
 	
 	public static final int SHADES_COUNT = 4;
@@ -20,6 +16,7 @@ public class PaletteUtils {
 	private static final Method getHandle = getMethodOrNull(craftBlockStateClass, "getHandle");
 	private static final Method getPosition = getMethodOrNull(craftBlockStateClass, "getPosition");
 	private static final Method getWorldHandle = getMethodOrNull(craftBlockStateClass, "getWorldHandle");
+	private static final Method getColor = getMethodByReturnType(getHandle.getReturnType(), NmsWorldMapHelper.getNmsClass_MaterialMapColor());
 	
 	private static final Field colorIdField = getColorIdField();
 	private static Field getColorIdField() {
@@ -71,6 +68,15 @@ public class PaletteUtils {
 		}
 		return res.toArray(new Field[0]);
 	}
+	private static Method getMethodByReturnType(Class<?> declaringClass, Class<?> returnType) {
+		for (Method method : declaringClass.getMethods()) {
+			//System.out.println(method.getName() + " class is " + method.getReturnType());
+			if (method.getReturnType() == returnType) {
+				return method;
+			}
+		}
+		return null;
+	}
 	
 	public static byte getColor(Block b)
 	{
@@ -80,10 +86,10 @@ public class PaletteUtils {
 		
 		Object craftBlockState = craftBlockStateClass.cast(b.getState());
 		try {
-			IBlockData nmsBlockData = (IBlockData)getHandle.invoke(craftBlockState);
-			BlockPosition nmsPosition = (BlockPosition)getPosition.invoke(craftBlockState);
-			IBlockAccess nmsBlockAccess = (IBlockAccess)getWorldHandle.invoke(craftBlockState);
-			Object color = nmsBlockData.d(nmsBlockAccess, nmsPosition);
+			Object nmsBlockData = getHandle.invoke(craftBlockState);
+			Object nmsPosition = getPosition.invoke(craftBlockState);
+			Object nmsBlockAccess = getWorldHandle.invoke(craftBlockState);
+			Object color = getColor.invoke(nmsBlockData, nmsBlockAccess, nmsPosition);
 
 			int colorId = (Integer)colorIdField.get(color);;
 			return (byte) (colorId * SHADES_COUNT + 1);
