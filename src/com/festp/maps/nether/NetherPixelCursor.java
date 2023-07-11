@@ -32,6 +32,8 @@ class NetherPixelCursor implements NetherCursor
 	
 	final Player player;
 	final boolean isSmall;
+	final byte[] colors;
+	final byte[] baseColors;
 	final int offset;
 	final int width;
 	final int minX;
@@ -44,10 +46,13 @@ class NetherPixelCursor implements NetherCursor
 		if (isSmall) {
 			width = SMALL_WIDTH;
 			offset = SMALL_OFFSET;
+			colors = SMALL_COLORS;
 		} else {
 			width = BIG_WIDTH;
 			offset = BIG_OFFSET;
+			colors = BIG_COLORS;
 		}
+		baseColors = new byte[colors.length];
 		this.width = width;
 		this.offset = offset;
 		minX = getCursorMinCorner(mapX);
@@ -70,21 +75,18 @@ class NetherPixelCursor implements NetherCursor
 	}
 	
 	public void drawOn(MapCanvas canvas) {
-		final byte[] colors;
-		if (isSmall)
-			colors = SMALL_COLORS;
-		else
-			colors = BIG_COLORS;
-		
 		for (int dy = 0; dy < width; dy++) {
 			for (int dx = 0; dx < width; dx++) {
-				byte color = colors[width * dy + dx];
-				if (color == O)
-					continue;
-				
 				int x = minX + dx;
 				int y = minY + dy;
 				if (!isInside(x, y))
+					continue;
+				
+				int colorIndex = width * dy + dx;
+				baseColors[colorIndex] = canvas.getPixel(x, y);
+				
+				byte color = colors[colorIndex];
+				if (color == O)
 					continue;
 				canvas.setPixel(x, y, color);
 			}
@@ -92,11 +94,15 @@ class NetherPixelCursor implements NetherCursor
 	}
 	
 	public void removeFrom(MapCanvas canvas) {
-		for (int y = minY; y < minY + width; y++) {
-			for (int x = minX; x < minX + width; x++) {
+		for (int dy = 0; dy < width; dy++) {
+			for (int dx = 0; dx < width; dx++) {
+				int x = minX + dx;
+				int y = minY + dy;
 				if (!isInside(x, y))
 					continue;
-				canvas.setPixel(x, y, canvas.getBasePixel(x, y));
+				
+				int colorIndex = width * dy + dx;
+				canvas.setPixel(x, y, baseColors[colorIndex]);
 			}
 		}
 	}
