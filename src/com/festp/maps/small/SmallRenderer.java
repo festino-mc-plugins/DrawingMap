@@ -35,13 +35,16 @@ public class SmallRenderer extends MapRenderer {
 		updateCursors(canvas);
 	}
 	
-	private void updatePixels(MapView view, MapCanvas canvas, Player player) {
+	private boolean canRender(MapView view, Player player) {
+		if (player == null) {
+			return true;
+		}
+
 		if (player.getWorld() != view.getWorld()) {
-			return;
+			return false;
 		}
 		
-		int scale = map.getScale();
-		int width = 128 / scale;
+		int width = map.getWidth();
 		int minX = map.getX();
 		int minZ = map.getZ();
 		int realX = minX + width / 2,
@@ -51,10 +54,18 @@ public class SmallRenderer extends MapRenderer {
 		long distX = playerX - realX,
 			distZ = playerZ - realZ;
 		if (distX * distX + distZ * distZ > RENDER_DISTANCE_SQUARED) {
-			return;
+			return false;
 		}
+		return true;
+	}
+	private void updatePixels(MapView view, MapCanvas canvas, Player player) {
+		if (!canRender(view, player))
+			return;
 		
-		// TODO try use vanilla MapIcons instead of NMS
+		int scale = map.getScale();
+		int width = map.getWidth();
+		int minX = map.getX();
+		int minZ = map.getZ();
 		vanillaRenderer.render(view, canvas, player);
 		byte[] colors = Arrays.copyOf(NmsWorldMapHelper.getColors(canvas), 0x3FFF);
 		int minMapX = minX - view.getCenterX() + 64;

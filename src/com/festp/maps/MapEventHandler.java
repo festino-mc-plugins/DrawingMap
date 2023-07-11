@@ -78,22 +78,17 @@ public class MapEventHandler implements Listener {
 	}
 	
 	public static void onMapLoad(MapView mapView) {
-		MapRenderer mainRenderer = mapView.getRenderers().get(0);
+		MapRenderer mainRenderer = MapUtils.getMainRenderer(mapView);
 		//System.out.println(mapView.getId() + " " + mapView.getRenderers().size() + " " + mainRenderer + (mainRenderer instanceof NetherCursorRenderer ? " " + ((NetherCursorRenderer)mainRenderer).getPrevRenderer() : ""));
 		if (mainRenderer instanceof SmallRenderer)
 			return;
 		if (mainRenderer instanceof DrawingRenderer)
 			return;
-		if (mapView.getRenderers().size() > 1 && MapFileManager.load(mapView.getId()) == null)
-			return; // was initialized as vanilla and it is vanilla
-		if (mainRenderer instanceof NetherCursorRenderer) {
-			NetherCursorRenderer ncr = (NetherCursorRenderer)mainRenderer;
-			MapRenderer prevRenderer = ncr.getPrevRenderer();
-			if (prevRenderer instanceof SmallRenderer)
+		if (MapFileManager.load(mapView.getId()) == null) { // it is vanilla
+			// check if was initialized 
+			if (mapView.getRenderers().size() != 1)
 				return;
-			if (prevRenderer instanceof DrawingRenderer)
-				return;
-			if (MapFileManager.load(mapView.getId()) == null)
+			if (mapView.getRenderers().get(0) instanceof NetherCursorRenderer)
 				return;
 		}
 		// map was not initialized

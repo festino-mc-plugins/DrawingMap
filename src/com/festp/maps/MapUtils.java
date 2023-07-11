@@ -12,6 +12,7 @@ import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 
 import com.festp.maps.drawing.DrawingMapUtils;
+import com.festp.maps.nether.NetherCursorRenderer;
 import com.festp.maps.small.SmallMapUtils;
 import com.festp.utils.NBTUtils;
 import com.festp.utils.UtilsVersion;
@@ -59,6 +60,14 @@ public class MapUtils {
 			}
 		}
 		return vanillaRenderer;
+	}
+	
+	public static MapRenderer getMainRenderer(MapView mapView) {
+		MapRenderer mainRenderer = mapView.getRenderers().get(0);
+		if (mainRenderer instanceof NetherCursorRenderer) {
+			return ((NetherCursorRenderer)mainRenderer).getPrevRenderer();
+		}
+		return mainRenderer;
 	}
 	
 	public static MapView genNewView(IMap map)

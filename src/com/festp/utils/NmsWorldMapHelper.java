@@ -97,8 +97,13 @@ public class NmsWorldMapHelper
 	public static MapCanvas getCanvas(MapView view, MapRenderer renderer, Player player) {
 		Map<MapRenderer, Map<Player, MapCanvas>> renderers = getCanvases(view);
 		Map<Player, MapCanvas> players = renderers.get(renderer);
-		MapCanvas canvas = players.get(renderer.isContextual() ? player : null);
-		return canvas;
+		if (player != null) {
+			return players.get(renderer.isContextual() ? player : null);
+		}
+		for (MapCanvas canvas : players.values()) {
+			return canvas;
+		}
+		return null;
 	}
 	/** Map<MapRenderer, Map<CraftPlayer, CraftMapCanvas>> */
 	@SuppressWarnings("unchecked")
@@ -123,11 +128,35 @@ public class NmsWorldMapHelper
 
 	public static boolean copyPixels(IMap mapFrom, MapView viewTo)
 	{
+		MapView viewFrom = MapUtils.getView(mapFrom);
+		return copyPixels(viewFrom, viewTo);
+	}
+	public static boolean copyPixels(MapView viewFrom, MapView viewTo)
+	{
+		MapCanvas canvas = getCanvas(viewFrom, viewFrom.getRenderers().get(0), null);
+		//MapRenderer mainRenderer = MapUtils.getMainRenderer(viewFrom);
+		//mainRenderer.render(viewTo, canvas, null);
+		// vanilla renderer can't render null player
+		// but nether pixel cursors is missing somehow
+		// therefore rerender is not needed
+		byte[] pixels = getColors(canvas);
+		boolean wasCopied = copyPixels(pixels, viewTo);
+		if (!wasCopied)
+			Logger.severe("Error while copy pixels from map view #" + viewFrom.getId() + " to map view #" + viewTo.getId());
+		return wasCopied;
+	}
+	public static boolean copyPixelsVanilla(MapView viewFrom, MapView viewTo) {
+		byte[] pixels = getColors(viewFrom);
+		boolean wasCopied = copyPixels(pixels, viewTo);
+		if (!wasCopied)
+			Logger.severe("Error while copy pixels from map view #" + viewFrom.getId() + " to map view #" + viewTo.getId());
+		return wasCopied;
+	}
+	private static boolean copyPixels(byte[] pixels, MapView viewTo)
+	{
+		if (pixels == null)
+			return false;
 		try {
-			MapView oldView = MapUtils.getView(mapFrom);
-			byte[] pixels = getColors(oldView);
-			if (pixels == null)
-				return false;
 			byte[] colors = new byte[128 * 128];
 			for (int i = 0; i < colors.length; i++) {
 				colors[i] = pixels[i];
@@ -139,7 +168,6 @@ public class NmsWorldMapHelper
 			fieldColors.setAccessible(true);
 			fieldColors.set(worldMap, colors);
 		} catch (Exception e) {
-			Logger.severe("Error while copy pixels from map #" + mapFrom.getId() + " to map view #" + viewTo.getId());
 			e.printStackTrace();
 			return false;
 		}
