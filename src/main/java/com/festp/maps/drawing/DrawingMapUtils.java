@@ -2,8 +2,12 @@ package com.festp.maps.drawing;
 
 import java.util.Arrays;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.map.MapView;
+import org.bukkit.map.MapView.Scale;
 
 import com.festp.maps.IMap;
 import com.festp.maps.MapFileManager;
@@ -37,5 +41,13 @@ public class DrawingMapUtils {
 		meta.setLore(Arrays.asList(new String[] { "Drawing" }));
 		item.setItemMeta(meta);
 		return item;
+	}
+	
+	public static MapView createDrawingMap(Location playerLoc) {
+		MapView view = Bukkit.createMap(playerLoc.getWorld());
+		view.setScale(Scale.FARTHEST);
+		DrawingMap map = new DrawingMap(view.getId(), DrawingInfo.buildFrom(playerLoc));
+		MapFileManager.addMap(map);
+		return view;
 	}
 }

@@ -30,7 +30,7 @@ import com.festp.utils.Utils;
 
 public class MapEventHandler implements Listener {
 
-	/** Init new map */
+	/** Init new map or reinit drawing map */
 	@EventHandler
 	public void onPlayerInteractEvent(PlayerInteractEvent event)
 	{
@@ -139,12 +139,9 @@ public class MapEventHandler implements Listener {
 		ItemStack mapItem;
 		if (SmallMapUtils.isSmallMapByNbt(item)) {
 			int scale = SmallMapUtils.getScale(item);
-			view = SmallMapUtils.genSmallMap(player.getLocation(), scale);
+			view = SmallMapUtils.createSmallMap(player.getLocation(), scale);
 		} else if (DrawingMapUtils.isDrawingMapByNbt(item)) {
-			view = Bukkit.createMap(player.getWorld());
-			view.setScale(Scale.FARTHEST);
-			DrawingMap map = new DrawingMap(view.getId(), DrawingInfo.buildFrom(player.getLocation()));
-			MapFileManager.addMap(map);
+			view = DrawingMapUtils.createDrawingMap(player.getLocation());
 		} else {
 			return null;
 		}

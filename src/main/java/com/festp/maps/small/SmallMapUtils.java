@@ -27,7 +27,7 @@ public class SmallMapUtils {
 		{
 			MapView view = MapUtils.getView(map);
 			Location loc = new Location(view.getWorld(), map.getX(), 0, map.getZ());
-			MapView newView = genSmallMap(loc, map.getScale() / 2);
+			MapView newView = createSmallMap(loc, map.getScale() / 2);
 			return MapUtils.getMap(newView.getId(), false);
 		}
 		else
@@ -66,7 +66,7 @@ public class SmallMapUtils {
 	}
 	
 	/** create new map */
-	public static MapView genSmallMap(Location l, int scale)
+	public static MapView createSmallMap(Location l, int scale)
 	{
 		MapView view = Bukkit.createMap(l.getWorld());
 		initVanillaMap(view, l.getBlockX(), l.getBlockZ());
