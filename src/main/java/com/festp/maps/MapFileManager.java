@@ -150,7 +150,7 @@ public class MapFileManager {
 			}
 			return true;
 		} else {
-			return saveBitset(getDiscoveredFile(map.getId()), map.getDicovered());
+			return saveBitset(getDiscoveredFile(map.getId()), map.getDiscovered());
 		}
 	}
 

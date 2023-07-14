@@ -43,10 +43,10 @@ public class DrawingMapUtils {
 		return item;
 	}
 	
-	public static MapView createDrawingMap(Location playerLoc) {
+	public static MapView createDrawingMap(Location playerLoc, int scale) {
 		MapView view = Bukkit.createMap(playerLoc.getWorld());
 		view.setScale(Scale.FARTHEST);
-		DrawingMap map = new DrawingMap(view.getId(), DrawingInfo.buildFrom(playerLoc));
+		DrawingMap map = new DrawingMap(view.getId(), DrawingInfo.buildFrom(playerLoc, scale));
 		MapFileManager.addMap(map);
 		return view;
 	}

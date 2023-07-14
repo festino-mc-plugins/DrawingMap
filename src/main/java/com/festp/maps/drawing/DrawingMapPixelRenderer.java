@@ -23,7 +23,7 @@ public class DrawingMapPixelRenderer {
 		this.canvas = canvas;
 		this.world = canvas.getMapView().getWorld();
 		this.map = map;
-		this.discovered = map.getDicovered();
+		this.discovered = map.getDiscovered();
 		this.scale = map.getScale();
 		this.xCenter = map.getX();
 		this.yCenter = map.getY();

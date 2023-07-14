@@ -1,9 +1,9 @@
 package com.festp.maps;
 
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,7 +16,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
-import org.bukkit.map.MapView.Scale;
 
 import com.festp.maps.drawing.DrawingInfo;
 import com.festp.maps.drawing.DrawingMap;
@@ -29,6 +28,7 @@ import com.festp.maps.small.SmallRenderer;
 import com.festp.utils.Utils;
 
 public class MapEventHandler implements Listener {
+	private static final int[] DRAWING_SCALES = { 8, 4, 2, 1 };
 
 	/** Init new map or reinit drawing map */
 	@EventHandler
@@ -54,6 +54,7 @@ public class MapEventHandler implements Listener {
 			if (newView != null) {
 				event.setCancelled(true);
 				event.setUseInteractedBlock(Result.DENY);
+				MapUtils.playInitSound(event.getPlayer());
 				// onMapLoad was called before
 				initRenderers(newView);
 			}
@@ -65,6 +66,7 @@ public class MapEventHandler implements Listener {
 			if (newMap != null) {
 				event.setCancelled(true);
 				event.setUseInteractedBlock(Result.DENY);
+				MapUtils.playInitSound(event.getPlayer());
 			}
 		}
 	}
@@ -141,13 +143,11 @@ public class MapEventHandler implements Listener {
 			int scale = SmallMapUtils.getScale(item);
 			view = SmallMapUtils.createSmallMap(player.getLocation(), scale);
 		} else if (DrawingMapUtils.isDrawingMapByNbt(item)) {
-			view = DrawingMapUtils.createDrawingMap(player.getLocation());
+			view = DrawingMapUtils.createDrawingMap(player.getLocation(), DRAWING_SCALES[0]);
 		} else {
 			return null;
 		}
 		mapItem = MapUtils.getMap(view.getId());
-
-		MapUtils.playInitSound(player);
 		
 		if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
 			item.setAmount(item.getAmount() - 1);
@@ -167,10 +167,52 @@ public class MapEventHandler implements Listener {
 		if (map == null)
 			return null;
 
-		map.setInfo(DrawingInfo.buildFrom(newLoc));
-		MapUtils.getView(map).setWorld(newLoc.getWorld());;
-		map.needReset = true;
-		MapFileManager.save(map);
+		reinitDrawingMap(map, newLoc);
 		return map;
+	}
+
+	private void reinitDrawingMap(DrawingMap map, Location newLoc) {
+		World newWorld = newLoc.getWorld();
+		int oldScale = map.getScale();
+		int scaleIndex = getScaleIndex(oldScale);
+		if (scaleIndex == -1) {
+			// map can't change scale
+			map.setInfo(DrawingInfo.buildFrom(newLoc, oldScale), newWorld);
+			return;
+		}
+
+		DrawingInfo info = DrawingInfo.buildFrom(newLoc, DRAWING_SCALES[0]);
+		if (!isEqualPlane(info, map)) {
+			// full reinit
+			map.setInfo(info, newWorld);
+			return;
+		}
+		
+		// shift scales
+		int newScaleIndex = (scaleIndex + 1) % DRAWING_SCALES.length;
+		int newScale = DRAWING_SCALES[newScaleIndex];
+		info = DrawingInfo.buildFrom(newLoc, newScale);
+		map.setInfo(info, newWorld);
+		if (newScaleIndex == 0) {
+			// TODO playsound?
+		}
+		return;
+	}
+	
+	private static int getScaleIndex(int scale) {
+		int scaleIndex = -1;
+		for (int i = 0; i < DRAWING_SCALES.length; i++) {
+			if (DRAWING_SCALES[i] == scale) {
+				scaleIndex = i;
+				break;
+			}
+		}
+		return scaleIndex;
+	}
+	private static boolean isEqualPlane(DrawingInfo info, DrawingMap map) {
+		return info.xCenter == map.getX()
+			&& info.yCenter == map.getY()
+			&& info.zCenter == map.getZ()
+			&& info.state == map.getDirection();
 	}
 }

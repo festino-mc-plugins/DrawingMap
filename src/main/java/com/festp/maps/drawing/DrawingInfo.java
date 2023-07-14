@@ -8,9 +8,9 @@ import com.festp.utils.Vector3i;
 public class DrawingInfo {
 	public static final int MAX_WIDTH = 128;
 	
-	public int scale;
-	public int xCenter, yCenter, zCenter;
-	public PlaneRotation3D state;
+	public final int scale;
+	public final int xCenter, yCenter, zCenter;
+	public final PlaneRotation3D state;
 	public boolean isFullDiscovered;
 	public boolean[][] discovered;
 
@@ -36,27 +36,18 @@ public class DrawingInfo {
 	}
 	
 	public int getWidth() {
-		return 128 / scale;
+		return MAX_WIDTH / scale;
 	}
 	
-	public static DrawingInfo buildFrom(Location loc) {
+	/**@param loc is point closest to the map center 
+	 * @param scale is the number of pixels per block */
+	public static DrawingInfo buildFrom(Location loc, int scale) {
 		int xCenter = (int) Math.round(loc.getX()),
 			yCenter = (int) Math.round(loc.getY()),
 			zCenter = (int) Math.round(loc.getZ());
 		PlaneRotation3D state = PlaneRotation3D.get(loc);
 		if (state.isUp() || state.isVertical()) {
 			yCenter += 1;
-		}
-		
-		float yaw = loc.getYaw() - 45;
-		double yawFrom45 = yaw - 90 * Math.floor(yaw / 90);
-		int scale = 1;
-		if (yawFrom45 < 45 - 20) {
-			scale = 8;
-		} else if (yawFrom45 < 45) {
-			scale = 4;
-		} else if (yawFrom45 < 45 + 20) {
-			scale = 2;
 		}
 		return new DrawingInfo(scale, xCenter, yCenter, zCenter, state);
 	}

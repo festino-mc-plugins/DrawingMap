@@ -1,7 +1,12 @@
 package com.festp.maps.drawing;
 
+import org.bukkit.World;
+import org.bukkit.map.MapView;
+import org.bukkit.map.MapView.Scale;
+
 import com.festp.maps.IMap;
 import com.festp.maps.MapFileManager;
+import com.festp.maps.MapUtils;
 import com.festp.maps.PlaneRotation3D;
 import com.festp.utils.Vector3i;
 
@@ -9,12 +14,14 @@ public class DrawingMap implements IMap {
 	
 	private int id;
 	private DrawingInfo info;
-	public boolean needReset = false;
+	private boolean needReset = false;
 	
 	public DrawingMap(int id, int scale, int xCenter, int yCenter, int zCenter, PlaneRotation3D pos)
 	{
 		this.id = id;
 		this.info = new DrawingInfo(scale, new Vector3i(xCenter, yCenter, zCenter), pos);
+		MapView mapview = MapUtils.getView(this);
+		mapview.setScale(getDrawingMapScale());
 	}
 	
 	public DrawingMap(int id, DrawingInfo info)
@@ -29,8 +36,19 @@ public class DrawingMap implements IMap {
 				+ ", scale=" + getScale() + ", rot=" + getDirection() + "}"; 
 	}
 	
-	public void setInfo(DrawingInfo info) {
+	public void setInfo(DrawingInfo info, World world) {
 		this.info = info;
+		MapView mapview = MapUtils.getView(this);
+		mapview.setWorld(world);
+		mapview.setScale(getDrawingMapScale());
+		needReset = true;
+		MapFileManager.save(this);
+	}
+	
+	public boolean tryReset() {
+		boolean res = needReset; 
+		needReset = false;
+		return res;
 	}
 	
 	public int getId() {
@@ -65,7 +83,7 @@ public class DrawingMap implements IMap {
 		return info.isFullDiscovered;
 	}
 	
-	public boolean[][] getDicovered() {
+	public boolean[][] getDiscovered() {
 		return info.discovered;
 	}
 	
@@ -96,5 +114,15 @@ public class DrawingMap implements IMap {
 			info = new DrawingInfo(info.scale, info.xCenter, info.yCenter, info.zCenter, info.state);
 		}
 		MapFileManager.save(this);
+	}
+	
+	private Scale getDrawingMapScale() {
+		switch (getScale()) {
+		case 8: return Scale.CLOSE;
+		case 4: return Scale.NORMAL;
+		case 2: return Scale.FAR;
+		case 1: return Scale.FARTHEST;
+		default: return Scale.CLOSEST;
+		}
 	}
 }

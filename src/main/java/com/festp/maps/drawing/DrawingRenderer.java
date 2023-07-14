@@ -41,13 +41,12 @@ public class DrawingRenderer extends CustomRenderer {
 
 	@Override
 	public void renderSpecific(MapView view, MapCanvas canvas, Player player) {
-		if (map.needReset) {
+		if (map.tryReset()) {
 			grids = null;
 			byte initColor = PaletteUtils.getColor(null);
 			for (int x = 0; x < 128; x++)
 				for (int y = 0; y < 128; y++)
 					canvas.setPixel(x, y, initColor);
-			map.needReset = false;
 		}
 		if (grids == null) {
 			grids = new DrawingMapGrid(GRID_SIZE, map.getWidth() / GRID_ROWS, System.currentTimeMillis());
@@ -253,7 +252,7 @@ public class DrawingRenderer extends CustomRenderer {
 		final int mapPlayerX = args.mapPlayerX;
 		final int mapPlayerY = args.mapPlayerY;
 		final World world = args.world;
-		final boolean[][] discovered = map.getDicovered();
+		final boolean[][] discovered = map.getDiscovered();
 		final int width = args.coords.width;
 
 		boolean updated = false;
