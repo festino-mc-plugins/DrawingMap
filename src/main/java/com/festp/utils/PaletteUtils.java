@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.bukkit.block.Block;
 
 public class PaletteUtils {
@@ -19,6 +18,24 @@ public class PaletteUtils {
 	private static final Method getColor = getMethodByReturnType(getHandle.getReturnType(), NmsWorldMapHelper.getNmsClass_MaterialMapColor());
 	
 	private static final Field colorIdField = getColorIdField();
+	
+	public static byte getColor(Block b)
+	{
+		Object craftBlockState = craftBlockStateClass.cast(b.getState());
+		try {
+			Object nmsBlockData = getHandle.invoke(craftBlockState);
+			Object nmsPosition = getPosition.invoke(craftBlockState);
+			Object nmsBlockAccess = getWorldHandle.invoke(craftBlockState);
+			Object color = getColor.invoke(nmsBlockData, nmsBlockAccess, nmsPosition);
+
+			int colorId = (Integer)colorIdField.get(color);;
+			return (byte) (colorId * SHADES_COUNT + 1);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
 	private static Field getColorIdField() {
 		Class<?> materialMapColorClass = NmsWorldMapHelper.getNmsClass_MaterialMapColor();
 		Field[] intFields = getFieldsByClass(materialMapColorClass, int.class);
@@ -58,6 +75,7 @@ public class PaletteUtils {
 		}
 		return intFields[maxTimesIndex];
 	}
+	
 	private static Field[] getFieldsByClass(Class<?> declaringClass, Class<?> clazz) {
 		List<Field> res = new ArrayList<>();
 		for (Field field : declaringClass.getDeclaredFields()) {
@@ -76,27 +94,6 @@ public class PaletteUtils {
 			}
 		}
 		return null;
-	}
-	
-	public static byte getColor(Block b)
-	{
-		if (b == null)
-			return (byte) 0;
-		
-		
-		Object craftBlockState = craftBlockStateClass.cast(b.getState());
-		try {
-			Object nmsBlockData = getHandle.invoke(craftBlockState);
-			Object nmsPosition = getPosition.invoke(craftBlockState);
-			Object nmsBlockAccess = getWorldHandle.invoke(craftBlockState);
-			Object color = getColor.invoke(nmsBlockData, nmsBlockAccess, nmsPosition);
-
-			int colorId = (Integer)colorIdField.get(color);;
-			return (byte) (colorId * SHADES_COUNT + 1);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return 0;
 	}
 	
 	private static Method getMethodOrNull(Class<?> clazz, String methodName) {

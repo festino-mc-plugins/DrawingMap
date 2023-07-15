@@ -64,16 +64,10 @@ public class DrawingRenderer extends CustomRenderer {
 		DrawingMapRenderArgs args = new DrawingMapRenderArgs(map, player, view.getWorld());
 
 		updateCursor(args, canvas, player.getDisplayName(), player.isSneaking());
-
-		boolean canRender = canRenderByZDistance(args);
-		if (canRender && !map.isFullDiscovered()) {
-			updateDiscovered(args);
-		}
-
-		DrawingMapPixelRenderer pixeler = new DrawingMapPixelRenderer(canvas, map, args.coords);
-		int totalRendered = renderPlayerSurroundings(pixeler, args);
-		grids.sort();
-		renderMainSurroundings(pixeler, args, totalRendered);
+		//long time1 = System.nanoTime();
+		updatePixels(canvas, args);
+		//long time2 = System.nanoTime();
+		//System.out.println("Drawing map took " + (time2 - time1) * 20.0 / 1_000_000_000 + "% of tick");
 	}
 
 	private class DrawingMapRenderArgs
@@ -120,6 +114,18 @@ public class DrawingRenderer extends CustomRenderer {
 			mapPlayerX = mapPlayer.getX();
 			mapPlayerY = mapPlayer.getY();
 		}
+	}
+	
+	private void updatePixels(MapCanvas canvas, DrawingMapRenderArgs args) {
+		boolean canRender = canRenderByZDistance(args);
+		if (canRender && !map.isFullDiscovered()) {
+			updateDiscovered(args);
+		}
+
+		DrawingMapPixelRenderer pixeler = new DrawingMapPixelRenderer(canvas, map, args.coords);
+		int totalRendered = renderPlayerSurroundings(pixeler, args);
+		grids.sort();
+		renderMainSurroundings(pixeler, args, totalRendered);
 	}
 
 	private void renderMainSurroundings(DrawingMapPixelRenderer pixeler, DrawingMapRenderArgs args, int totalRendered)
