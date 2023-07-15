@@ -194,7 +194,7 @@ public class MapEventHandler implements Listener {
 		info = DrawingInfo.buildFrom(newLoc, newScale);
 		map.setInfo(info, newWorld);
 		if (newScaleIndex == 0) {
-			// TODO playsound?
+			// TODO playsound? minecraft:block.grass.step
 		}
 		return;
 	}
