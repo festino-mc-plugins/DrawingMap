@@ -22,6 +22,7 @@ public class SmallRenderer extends MapRenderer {
 	
 	final SmallMap map;
 	final MapRenderer vanillaRenderer;
+	boolean initialized = false;
 	
 	public SmallRenderer(SmallMap map, MapRenderer vanillaRenderer) {
 		this.map = map;
@@ -59,9 +60,10 @@ public class SmallRenderer extends MapRenderer {
 		return true;
 	}
 	private void updatePixels(MapView view, MapCanvas canvas, Player player) {
-		if (!canRender(view, player))
+		if (initialized && !canRender(view, player))
 			return;
 		
+		initialized = true;
 		int scale = map.getScale();
 		int width = map.getWidth();
 		int minX = map.getX();
