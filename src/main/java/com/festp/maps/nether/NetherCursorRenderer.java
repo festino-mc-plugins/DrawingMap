@@ -91,6 +91,8 @@ public class NetherCursorRenderer extends MapRenderer {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			if (player != null && !player.canSee(p))
 				continue;
+			if (isNetherPlayer(p))
+				continue;
 			MapCursor cursor = getOverworldCursor(mapInfo, p.getLocation());
 			if (!view.isUnlimitedTracking() && cursor.getType() == Type.SMALL_WHITE_CIRCLE)
 				continue;
@@ -99,10 +101,15 @@ public class NetherCursorRenderer extends MapRenderer {
 			cursors.addCursor(cursor);
 		}
 	}
+	
 	private static boolean isOverworldPlayerCursor(Type cursorType) {
 		return cursorType == Type.WHITE_POINTER
 				|| cursorType == Type.WHITE_CIRCLE
 				|| cursorType == Type.SMALL_WHITE_CIRCLE;
+	}
+	
+	private boolean isNetherPlayer(Player p) {
+		return p != null && p.isOnline() && p.getWorld().getEnvironment() == Environment.NETHER;
 	}
 
 	private void updateCursors(Player player) {
@@ -123,7 +130,7 @@ public class NetherCursorRenderer extends MapRenderer {
 
 	private void updateNetherCursor(MapInfo mapInfo, PlayerInfo playerInfo) {
 		Player p = playerInfo.player;
-		if (p == null || !p.isOnline() || p.getWorld().getEnvironment() != Environment.NETHER) {
+		if (!isNetherPlayer(p)) {
 			netherCursors.remove(playerInfo.playerName);
 			return;
 		}
