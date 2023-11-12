@@ -79,7 +79,7 @@ public class SmallRenderer extends MapRenderer {
 		initialized = true;
 
 		vanillaRenderer.render(view, canvas, player);
-		byte[] colors = Arrays.copyOf(NmsWorldMapHelper.getColors(canvas), 0x3FFF);
+		byte[] colors = Arrays.copyOf(NmsWorldMapHelper.getColors(canvas), 0x4000);
 		int minX = map.getX();
 		int minZ = map.getZ();
 		int minMapX = minX - view.getCenterX() + 64;
