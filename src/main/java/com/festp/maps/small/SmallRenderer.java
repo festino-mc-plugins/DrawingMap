@@ -12,6 +12,7 @@ import org.bukkit.map.MapCursorCollection;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 
+import com.festp.Logger;
 import com.festp.maps.DrawingMapCoordinator;
 import com.festp.maps.MapUtils;
 import com.festp.utils.NmsWorldMapHelper;
@@ -31,22 +32,8 @@ public class SmallRenderer extends MapRenderer {
 
 	public void render(MapView view, MapCanvas canvas, Player player)
 	{
-		int expectedX = SmallMapUtils.getVanillaCenter(map.getX());
-		int expectedZ = SmallMapUtils.getVanillaCenter(map.getZ());
-		int viewX = view.getCenterX();
-		int viewZ = view.getCenterZ();
-		if (viewX != expectedX || viewZ != expectedZ) {
-			view.setCenterX(expectedX);
-			view.setCenterZ(expectedZ);
-		}
-		
 		updatePixels(view, canvas, player);
 		updateCursors(canvas);
-		
-		if (viewX != expectedX || viewZ != expectedZ) {
-			view.setCenterX(viewX);
-			view.setCenterZ(viewZ);
-		}
 	}
 	
 	private boolean canRender(MapView view, Player player) {
@@ -73,10 +60,15 @@ public class SmallRenderer extends MapRenderer {
 		return true;
 	}
 	private void updatePixels(MapView view, MapCanvas canvas, Player player) {
-		if (initialized && !canRender(view, player))
+		if (!initialized) {
+			initialized = true;
+			if (tryResetVanillaCenter(view))
+				return;
+		}
+		else if (!canRender(view, player)) {
 			return;
+		}
 		
-		initialized = true;
 
 		vanillaRenderer.render(view, canvas, player);
 		byte[] colors = Arrays.copyOf(NmsWorldMapHelper.getColors(canvas), 0x4000);
@@ -193,5 +185,20 @@ public class SmallRenderer extends MapRenderer {
 	
 	private boolean isRenderedPlayer(Player p) {
 		return MapUtils.hasMap(p, map.getId());
+	}
+	
+	private boolean tryResetVanillaCenter(MapView view) {
+		int expectedX = SmallMapUtils.getVanillaCenter(map.getX());
+		int expectedZ = SmallMapUtils.getVanillaCenter(map.getZ());
+		int viewX = view.getCenterX();
+		int viewZ = view.getCenterZ();
+		if (viewX != expectedX || viewZ != expectedZ) {
+			Logger.warning("Invalid center coordinates of map #" + map.getId() + "! "
+					+ "Replacing (" + viewX + ", " + viewZ + ") with (" + expectedX + ", " + expectedZ + ")...");
+			view.setCenterX(expectedX);
+			view.setCenterZ(expectedZ);
+			return true;
+		}
+		return false;
 	}
 }
