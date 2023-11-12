@@ -31,9 +31,22 @@ public class SmallRenderer extends MapRenderer {
 
 	public void render(MapView view, MapCanvas canvas, Player player)
 	{
-		updatePixels(view, canvas, player);
+		int expectedX = SmallMapUtils.getVanillaCenter(map.getX());
+		int expectedZ = SmallMapUtils.getVanillaCenter(map.getZ());
+		int viewX = view.getCenterX();
+		int viewZ = view.getCenterZ();
+		if (viewX != expectedX || viewZ != expectedZ) {
+			view.setCenterX(expectedX);
+			view.setCenterZ(expectedZ);
+		}
 		
+		updatePixels(view, canvas, player);
 		updateCursors(canvas);
+		
+		if (viewX != expectedX || viewZ != expectedZ) {
+			view.setCenterX(viewX);
+			view.setCenterZ(viewZ);
+		}
 	}
 	
 	private boolean canRender(MapView view, Player player) {
@@ -64,14 +77,15 @@ public class SmallRenderer extends MapRenderer {
 			return;
 		
 		initialized = true;
-		int scale = map.getScale();
-		int width = map.getWidth();
-		int minX = map.getX();
-		int minZ = map.getZ();
+
 		vanillaRenderer.render(view, canvas, player);
 		byte[] colors = Arrays.copyOf(NmsWorldMapHelper.getColors(canvas), 0x3FFF);
+		int minX = map.getX();
+		int minZ = map.getZ();
 		int minMapX = minX - view.getCenterX() + 64;
 		int minMapZ = minZ - view.getCenterZ() + 64;
+		int scale = map.getScale();
+		int width = map.getWidth();
 		for (int z = 0; z < width; z++)
 		{
 			for (int x = 0; x < width; x++)

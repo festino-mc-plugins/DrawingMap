@@ -84,8 +84,8 @@ public class SmallMapUtils {
 	}
 	
 	private static void initVanillaMap(MapView view, int x, int z) {
-		view.setCenterX(floorCoord(x, 128) + 64);
-		view.setCenterZ(floorCoord(z, 128) + 64);
+		view.setCenterX(getVanillaCenter(x));
+		view.setCenterZ(getVanillaCenter(z));
 		view.setScale(Scale.CLOSEST); // 1:1
 		view.setTrackingPosition(true);
 	}
@@ -113,6 +113,10 @@ public class SmallMapUtils {
 		if (1 <= scale && scale <= 128)
 			return scale;
 		return -1;
+	}
+	
+	public static int getVanillaCenter(int x) {
+		return floorCoord(x, 128) + 64;
 	}
 	
 	private static int floorCoord(int x, int step) {
