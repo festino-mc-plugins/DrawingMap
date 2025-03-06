@@ -21,6 +21,9 @@ public class PaletteUtils {
 	
 	public static byte getColor(Block b)
 	{
+		if (b == null) {
+			return 0;
+		}
 		Object craftBlockState = craftBlockStateClass.cast(b.getState());
 		try {
 			Object nmsBlockData = getHandle.invoke(craftBlockState);

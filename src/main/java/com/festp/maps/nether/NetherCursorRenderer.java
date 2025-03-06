@@ -24,6 +24,7 @@ import com.festp.maps.MapUtils;
 import com.festp.maps.PlaneRotation3D;
 import com.festp.maps.small.SmallMap;
 import com.festp.maps.small.SmallMapUtils;
+import com.festp.utils.MapCursors;
 import com.festp.utils.Vector3i;
 
 public class NetherCursorRenderer extends MapRenderer {
@@ -94,7 +95,7 @@ public class NetherCursorRenderer extends MapRenderer {
 			if (isNetherPlayer(p))
 				continue;
 			MapCursor cursor = getOverworldCursor(mapInfo, p.getLocation());
-			if (!view.isUnlimitedTracking() && cursor.getType() == Type.SMALL_WHITE_CIRCLE)
+			if (!view.isUnlimitedTracking() && cursor.getType() == MapCursors.SMALL_WHITE_CIRCLE)
 				continue;
 			if (!MapUtils.hasMap(p, view.getId()))
 				continue;
@@ -103,9 +104,9 @@ public class NetherCursorRenderer extends MapRenderer {
 	}
 	
 	private static boolean isOverworldPlayerCursor(Type cursorType) {
-		return cursorType == Type.WHITE_POINTER
-				|| cursorType == Type.WHITE_CIRCLE
-				|| cursorType == Type.SMALL_WHITE_CIRCLE;
+		return cursorType == MapCursors.WHITE_POINTER
+				|| cursorType == MapCursors.WHITE_CIRCLE
+				|| cursorType == MapCursors.SMALL_WHITE_CIRCLE;
 	}
 	
 	private boolean isNetherPlayer(Player p) {
@@ -146,11 +147,11 @@ public class NetherCursorRenderer extends MapRenderer {
 	private void putNetherCursor(MapInfo mapInfo, PlayerInfo playerInfo) {
 		MapCursor cursor = getOverworldCursor(mapInfo, playerInfo.playerLoc.multiply(8));
 		boolean useCursor = false;
-		if (cursor.getType() == Type.WHITE_POINTER || useCursor) {
-			cursor.setType(Type.RED_POINTER);
+		if (cursor.getType() == MapCursors.WHITE_POINTER || useCursor) {
+			cursor.setType(MapCursors.RED_POINTER);
 			netherCursors.put(playerInfo.playerName, new NetherIconCursor(playerInfo.player, cursor));
 		} else {
-			boolean isSmall = cursor.getType() == Type.SMALL_WHITE_CIRCLE;
+			boolean isSmall = cursor.getType() == MapCursors.SMALL_WHITE_CIRCLE;
 			netherCursors.put(playerInfo.playerName, new NetherPixelCursor(playerInfo.player, cursor.getX(), cursor.getY(), isSmall));
 		}
 	}
@@ -167,7 +168,7 @@ public class NetherCursorRenderer extends MapRenderer {
 		y = mapY * 0.5 / mapInfo.scale;
 		if (-halfWidth <= x && x < halfWidth && -halfWidth <= y && y < halfWidth) {
 			MapCursor cursor = mapInfo.coords.getCursor3D((byte) mapX, (byte) mapY, loc, true);
-			cursor.setType(Type.WHITE_POINTER);
+			cursor.setType(MapCursors.WHITE_POINTER);
 			return cursor;
 		}
 		else {
@@ -175,9 +176,9 @@ public class NetherCursorRenderer extends MapRenderer {
 			final boolean isNear = -maxDistance <= x && x < maxDistance && -maxDistance <= y && y < maxDistance;
 			mapX = clamp(mapX, -128, 127);
 			mapY = clamp(mapY, -128, 127);
-			MapCursor cursor = new MapCursor((byte) mapX, (byte) mapY, (byte) 0, Type.WHITE_CIRCLE, true);
+			MapCursor cursor = new MapCursor((byte) mapX, (byte) mapY, (byte) 0, MapCursors.WHITE_CIRCLE, true);
 			if (!isNear)
-				cursor.setType(Type.SMALL_WHITE_CIRCLE);
+				cursor.setType(MapCursors.SMALL_WHITE_CIRCLE);
 			return cursor;
 		}
 	}

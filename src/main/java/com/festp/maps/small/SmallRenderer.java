@@ -15,6 +15,7 @@ import org.bukkit.map.MapView;
 import com.festp.Logger;
 import com.festp.maps.DrawingMapCoordinator;
 import com.festp.maps.MapUtils;
+import com.festp.utils.MapCursors;
 import com.festp.utils.NmsWorldMapHelper;
 
 public class SmallRenderer extends MapRenderer {
@@ -143,14 +144,14 @@ public class SmallRenderer extends MapRenderer {
         	
         	int x = worldToCursorX(player.getLocation().getX());
         	int z = worldToCursorZ(player.getLocation().getZ());
-        	MapCursor cursor = new MapCursor((byte)0, (byte)0, getDirection(player), Type.WHITE_POINTER, true);
+        	MapCursor cursor = new MapCursor((byte)0, (byte)0, getDirection(player), MapCursors.WHITE_POINTER, true);
         	if (x < -128 || 127 < x || z < -128 || 127 < z) {
     			final int halfWidth = 128;
     			final int maxDistance = 5 * halfWidth;
     			if (x <= -maxDistance || maxDistance < x || z <= -maxDistance || maxDistance < z)
-    				cursor.setType(Type.SMALL_WHITE_CIRCLE);
+    				cursor.setType(MapCursors.SMALL_WHITE_CIRCLE);
     			else
-    				cursor.setType(Type.WHITE_CIRCLE);
+    				cursor.setType(MapCursors.WHITE_CIRCLE);
     			cursor.setDirection((byte)0);
     			x = clamp(x, -128, 127);
     			z = clamp(z, -128, 127);
@@ -178,9 +179,9 @@ public class SmallRenderer extends MapRenderer {
 	}
 	
 	private static boolean isPlayerCursor(Type cursorType) {
-		return cursorType == Type.WHITE_POINTER
-				|| cursorType == Type.WHITE_CIRCLE
-				|| cursorType == Type.SMALL_WHITE_CIRCLE;
+		return cursorType == MapCursors.WHITE_POINTER
+				|| cursorType == MapCursors.WHITE_CIRCLE
+				|| cursorType == MapCursors.SMALL_WHITE_CIRCLE;
 	}
 	
 	private boolean isRenderedPlayer(Player p) {

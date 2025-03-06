@@ -7,6 +7,7 @@ public class UtilsVersion
 	private static final int VERSION = initVersion();
 	public static final boolean SUPPORTS_INTEGER_MAP_ID = UtilsVersion.GetVersion() >= 11300;
 	public static final boolean USE_VERSION_INDEPENDENT_NMS = UtilsVersion.GetVersion() >= 11700;
+	public static final boolean USE_NEW_CURSORS = UtilsVersion.GetVersion() >= 12100;
 
 	/** format is 11902 for 1.19.2, 10710 for 1.7.10*/
 	private static int GetVersion()

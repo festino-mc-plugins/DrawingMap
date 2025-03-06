@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.map.MapCursor;
 import org.bukkit.util.Vector;
 
+import com.festp.utils.MapCursors;
 import com.festp.utils.Vector3i;
 
 public class DrawingMapCoordinator {
@@ -175,9 +176,9 @@ public class DrawingMapCoordinator {
 		if (!ignorePitch) {
 			double acos45 = Math.sqrt(2) / 2;
 			if (renderDot >= acos45) {
-				return new MapCursor(x, y, (byte) 0, MapCursor.Type.WHITE_CIRCLE, true);
+				return new MapCursor(x, y, (byte) 0, MapCursors.WHITE_CIRCLE, true);
 			} else if (renderDot <= -acos45) {
-				return new MapCursor(x, y, (byte) 0, MapCursor.Type.SMALL_WHITE_CIRCLE, true);
+				return new MapCursor(x, y, (byte) 0, MapCursors.SMALL_WHITE_CIRCLE, true);
 			}
 		}
 
@@ -185,7 +186,7 @@ public class DrawingMapCoordinator {
 		// s/w/n/e = 0/90/180/270 = down/left/up/right (down = vert, left = -hor)
 		double pseudoyaw = Math.toDegrees(Math.atan2(-dir.dot(horDir), dir.dot(vertDir)));
 		byte direction = yawToDirection(pseudoyaw);
-		return new MapCursor(x, y, direction, MapCursor.Type.WHITE_POINTER, true);
+		return new MapCursor(x, y, direction, MapCursors.WHITE_POINTER, true);
 	}
 	
 	public static byte yawToDirection(double yaw) {

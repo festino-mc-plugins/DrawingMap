@@ -4,7 +4,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapCursorCollection;
-import org.bukkit.map.MapCursor.Type;
+
+import com.festp.utils.MapCursors;
 
 public class NetherIconCursor implements NetherCursor {
 	private final Player player;
@@ -30,7 +31,7 @@ public class NetherIconCursor implements NetherCursor {
 	}
 
 	public boolean isSmall() {
-		return cursor.getType() == Type.SMALL_WHITE_CIRCLE;
+		return cursor.getType() == MapCursors.SMALL_WHITE_CIRCLE;
 	}
 
 }
