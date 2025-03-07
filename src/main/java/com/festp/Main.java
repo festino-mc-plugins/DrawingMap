@@ -54,7 +54,7 @@ public class Main extends JavaPlugin implements Listener
     				}
     			}, 0L, 1L);
     	
-    	MapDataMonitor mapDataMonitor = new MapDataMonitor(this);
+    	MapDataMonitor mapDataMonitor = new MapDataMonitor();
     	Bukkit.getScheduler().scheduleSyncRepeatingTask(this,
     			new Runnable() {
     				public void run() {

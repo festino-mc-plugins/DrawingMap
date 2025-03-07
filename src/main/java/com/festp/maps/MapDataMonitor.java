@@ -7,51 +7,35 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.map.MapView;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.festp.Logger;
 
 public class MapDataMonitor {
 	
-	private final JavaPlugin plugin;
+	private static boolean init = false;
+	private static Field CraftWorld_WorldServerField;
+	private static Method WorldServer_getDataStorage;
+	private static Field WorldPersistentData_MapField;
+	private static Field WorldMap_id;
+	private static Field WorldMap_mapView;
+	
 	private final HashSet<String> loadedMaps = new HashSet<>();
 	
-	public MapDataMonitor(JavaPlugin plugin) {
-		this.plugin = plugin;
-	}
-	
 	public void update() {
-
+		if (!init) {
+			init = true;
+			initReflection();
+		}
+		// from Minectaft sources:
+		// (WorldMap) WorldServer#getServer().overworld().getDataStorage().get(WorldMap.factory(), mapid.key());
+		// skipped getServer().overworld() by using default overworld index (TODO better)
+		World overworld = Bukkit.getWorlds().get(0);
     	try {
-        	//UtilsReflection.printAllFields(Bukkit.getWorlds().get(0).getClass());
-			//UtilsReflection.printAllFields(Class.forName("net.minecraft.server.level.WorldServer"));
-			//UtilsReflection.printAllFields(NmsWorldMapHelper.getCraftbukkitClass("persistence.CraftPersistentDataContainer"));
-			Field worldField = Bukkit.getWorlds().get(0).getClass().getDeclaredField("world");
-			worldField.setAccessible(true);
-			Object worldServer = worldField.get(Bukkit.getWorlds().get(0));
-			//UtilsReflection.printAllMethods(worldServer.getClass());
-			
-			// net.minecraft.world.level.storage.WorldData
-			Method getDataStorage7 = null;
-			//System.out.println(worldServer.getClass().getCanonicalName() + " has " + worldServer.getClass().getDeclaredMethods().length + " methods:");
-			for (Method m : worldServer.getClass().getDeclaredMethods()) {
-				if (m.getParameterCount() > 0) continue;
-				//System.out.println(m.getReturnType().getSimpleName() + " " + m.getName());
-				if (!m.getReturnType().getSimpleName().equals("WorldPersistentData")) continue; // WorldData
-				//System.out.println(m.getName());
-				getDataStorage7 = m;
-				break;
-			}
-			//Method getDataStorage7 = worldServer.getClass().getDeclaredMethod("z_");
-			getDataStorage7.setAccessible(true);
-			Object dataStorage7 = getDataStorage7.invoke(worldServer);
-			//UtilsReflection.printAllFields(dataStorage7.getClass());
-			//UtilsReflection.printAllMethods(dataStorage7.getClass());
-
-			Field mapField = dataStorage7.getClass().getDeclaredField("b");
-			mapField.setAccessible(true);
-			Map<?, ?> map = (Map<?, ?>)mapField.get(dataStorage7);
+			Object worldServer = CraftWorld_WorldServerField.get(overworld);
+			Object dataStorage = WorldServer_getDataStorage.invoke(worldServer);
+			Map<?, ?> map = (Map<?, ?>)WorldPersistentData_MapField.get(dataStorage);
 			
 			HashSet<String> unloadedMaps = new HashSet<>(loadedMaps);
 			
@@ -64,72 +48,86 @@ public class MapDataMonitor {
 				if (unloadedMaps.remove(keyString)) continue;
 				
 				loadedMaps.add(keyString);
-				/*try {
-					int mapId = Integer.parseInt(keyString.substring(4));
-					onMapLoaded(mapId);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}*/
-
-				Object worldMap = entry.getValue();
-				
-				// I don't know why id is null by default, so I set it according to
-				// https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/map/CraftMapView.java?until=3ae90697f36e3553994cb0cd840e38e53d30904d&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fcraftbukkit%2Fmap%2FCraftMapView.java&at=refs%2Fheads%2Fversion%2F1.20.6
-				try {
-					Field worldMapIdField = worldMap.getClass().getDeclaredField("id");
-					worldMapIdField.setAccessible(true);
-					worldMapIdField.set(worldMap, keyString);
-
-					Field mapViewField = worldMap.getClass().getDeclaredField("mapView");
-					mapViewField.setAccessible(true);
-					MapView mapView = (MapView)mapViewField.get(worldMap);
-					onMapLoaded(mapView);
-				} catch (Exception e) {
-					// id was removed somewhen in 1.20.3-1.21.4
-					try {
-						int mapId = Integer.parseInt(keyString.substring("map_".length()));
-						onMapLoaded(mapId);
-					} catch (Exception e2) {
-						e.printStackTrace();
-					}
-				}
-				
+				onMapLoad(keyString, entry.getValue());
 			}
 			
 			// can add unload event
 			loadedMaps.removeAll(unloadedMaps);
-
-			// (WorldMap) WorldServer#getServer().overworld().getDataStorage().get(WorldMap.factory(), mapid.key());
-			/*Method getServer = worldServer.getClass().getDeclaredMethod("getServer");
-			getServer.setAccessible(true);
-			Object server = getServer.invoke(worldServer);
-			UtilsReflection.printAllMethods(server.getClass());
-			
-			Method getOverworld = server.getClass().getDeclaredMethod("overworld");
-			getOverworld.setAccessible(true);
-			Object overworldObject = getOverworld.invoke(server);
-			UtilsReflection.printAllMethods(overworldObject.getClass());
-			
-			Method getDataStorage = overworldObject.getClass().getDeclaredMethod("getDataStorage");
-			getDataStorage.setAccessible(true);
-			Object dataStorage = getDataStorage.invoke(overworldObject);
-			
-			UtilsReflection.printAllFields(dataStorage.getClass());
-			UtilsReflection.printAllMethods(dataStorage.getClass());*/
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			Logger.severe("Couldn't update loaded map data");
 			e.printStackTrace();
 		}
 	}
 	
-	private void onMapLoaded(int id) {
+	private static void onMapLoad(int id) {
 		MapView mapView = MapUtils.getView(id);
-		Logger.info("Loaded " + mapView.getId());
 		MapEventHandler.onMapLoad(mapView);
 	}
 	
-	private void onMapLoaded(MapView mapView) {
-		Logger.info("Loaded " + mapView.getId());
+	private static void onMapLoad(MapView mapView) {
 		MapEventHandler.onMapLoad(mapView);
+	}
+	
+	private static void onMapLoad(String id, Object worldMap) {
+		if (WorldMap_id != null && WorldMap_mapView != null) {
+			try {
+				// I don't know why id is null by default, so I set it according to
+				// https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse/src/main/java/org/bukkit/craftbukkit/map/CraftMapView.java?until=3ae90697f36e3553994cb0cd840e38e53d30904d&untilPath=src%2Fmain%2Fjava%2Forg%2Fbukkit%2Fcraftbukkit%2Fmap%2FCraftMapView.java&at=refs%2Fheads%2Fversion%2F1.20.6
+				WorldMap_id.set(worldMap, id);
+				MapView mapView = (MapView)WorldMap_mapView.get(worldMap);
+				onMapLoad(mapView);
+			} catch (Exception e) {
+				Logger.severe("Couldn't update loaded map data for \"" + id + "\"");
+				e.printStackTrace();
+			}
+		}
+		else {
+			// id field was removed somewhen in 1.20.3-1.21.4
+			try {
+				int mapId = Integer.parseInt(id.substring("map_".length()));
+				onMapLoad(mapId);
+			} catch (Exception e) {
+				Logger.severe("Couldn't parse map id from \"" + id + "\" and update entry");
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private static void initReflection() {
+		try {
+			World overworld = Bukkit.getWorlds().get(0);
+			CraftWorld_WorldServerField = overworld.getClass().getDeclaredField("world");
+			CraftWorld_WorldServerField.setAccessible(true);
+			
+			Object worldServer = CraftWorld_WorldServerField.get(overworld);
+			for (Method m : worldServer.getClass().getDeclaredMethods()) {
+				if (m.getParameterCount() != 0) continue;
+				if (!m.getReturnType().getSimpleName().equals("WorldPersistentData")) continue;
+				WorldServer_getDataStorage = m;
+				break;
+			}
+			WorldServer_getDataStorage.setAccessible(true);
+
+			Object dataStorage = WorldServer_getDataStorage.invoke(worldServer);
+			// TODO search by type Map
+			WorldPersistentData_MapField = dataStorage.getClass().getDeclaredField("b");
+			WorldPersistentData_MapField.setAccessible(true);
+			
+			Class<?> WorldMapClass = Class.forName("net.minecraft.world.level.saveddata.maps.WorldMap");
+
+			// may throw on new versions:
+			// id field was removed somewhen in 1.20.3-1.21.4
+			WorldMap_id = WorldMapClass.getDeclaredField("id");
+			WorldMap_id.setAccessible(true);
+			if (WorldMap_id.getType() != String.class) {
+				WorldMap_id = null;
+			}
+
+			WorldMap_mapView = WorldMapClass.getDeclaredField("mapView");
+			WorldMap_mapView.setAccessible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 }
