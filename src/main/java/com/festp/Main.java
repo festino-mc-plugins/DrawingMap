@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.festp.commands.CommandWorker;
 import com.festp.maps.MapCraftHandler;
+import com.festp.maps.MapDataMonitor;
 import com.festp.maps.MapEventHandler;
 import com.festp.maps.drawing.ScanManager;
 import com.festp.utils.NBTUtils;
@@ -50,6 +51,14 @@ public class Main extends JavaPlugin implements Listener
     				public void run() {
     					TaskList.tick();
     					scanManager.tick();
+    				}
+    			}, 0L, 1L);
+    	
+    	MapDataMonitor mapDataMonitor = new MapDataMonitor(this);
+    	Bukkit.getScheduler().scheduleSyncRepeatingTask(this,
+    			new Runnable() {
+    				public void run() {
+    					mapDataMonitor.update();
     				}
     			}, 0L, 1L);
 	}
